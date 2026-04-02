@@ -334,6 +334,7 @@
       }
 
       async function loadRequests() {
+        showError('');
         const user = getUser();
         if (!user) {
           renderRequests([]);
