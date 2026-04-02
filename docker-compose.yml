@@ -1,0 +1,19 @@
+services:
+  cidadeatende-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cidadeatende-api
+    ports:
+      - "3334:3334"
+    environment:
+      PORT: 3334
+      HOST: 0.0.0.0
+      CORS_ORIGIN: "*"
+      DB_FILE: /app/data/db.json
+    volumes:
+      - ams_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  ams_data:
