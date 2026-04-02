@@ -1,0 +1,11 @@
+services:
+  geo-demo-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: geo-demo-api
+    ports:
+      - "3340:3340"
+    environment:
+      PORT: 3340
+    restart: unless-stopped
