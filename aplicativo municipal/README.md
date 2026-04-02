@@ -1,6 +1,6 @@
 # CidadeAtende - MVP executável
 
-Este diretório contém um **MVP funcional** do Aplicativo Municipal de Serviços com:
+Este diretório contém um MVP funcional do Aplicativo Municipal de Serviços com:
 - cadastro de cidadão (nome, CPF, e-mail);
 - abertura de solicitação nas 4 categorias obrigatórias;
 - protocolo automático;
@@ -9,16 +9,16 @@ Este diretório contém um **MVP funcional** do Aplicativo Municipal de Serviço
 
 ## Estrutura
 - `backend/`: API Node.js + Express com persistência em arquivo JSON.
-- `frontend/`: interface HTML/JS simples servida pelo backend.
+- `front-end/`: interface HTML/JS simples servida pelo backend.
 
 ## Como rodar
 ```bash
-cd municipal-app/backend
+cd "aplicativo municipal/backend"
 npm install
 npm run dev
 ```
 
-Acesse em: `http://localhost:3334`
+Acesse em: `http://localhost:3334/app`
 
 ## Endpoints principais
 - `POST /api/auth/register`
