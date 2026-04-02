@@ -1,6 +1,19 @@
 # Geo Demo Serviço Público — São Vicente de Minas/MG
 
 ## Visão geral
+<<<<<<< HEAD
+Demo oficial do repositório para registro de ocorrências urbanas georreferenciadas, com backend, frontend web e camada mobile.
+
+## Objetivo da demo
+Demonstrar como transformar uma reclamação genérica em ocorrência pública estruturada com contexto territorial e pronta para encaminhamento institucional.
+
+## Importância da geolocalização
+A geolocalização é o núcleo operacional da solução: adiciona coordenadas, contexto de mapa, referência municipal e rastreabilidade para priorização e resposta pública.
+
+## APIs usadas
+- **IBGE**: `https://servicodados.ibge.gov.br/api/v1/localidades/municipios/3165305`
+- **Nominatim**: `https://nominatim.openstreetmap.org/search?q=São%20Vicente%20de%20Minas,%20Minas%20Gerais,%20Brasil&format=jsonv2&limit=1`
+=======
 Projeto demo completo para registro de ocorrências urbanas com **geolocalização central** e dados territoriais oficiais para apoiar encaminhamento institucional.
 
 ## Objetivo da demo
@@ -38,6 +51,7 @@ Se a chamada ao Nominatim falhar, o backend usa automaticamente este fallback ha
 ```
 
 No payload de resposta, o campo `source` indica `api` ou `fallback`.
+>>>>>>> origin/main
 
 ## Endpoints
 - `GET /api/health`
@@ -45,9 +59,14 @@ No payload de resposta, o campo `source` indica `api` ou `fallback`.
 - `GET /api/ocorrencias`
 - `POST /api/ocorrencias`
 
+<<<<<<< HEAD
+## Estrutura oficial
+```bash
+=======
 ## Estrutura
 
 ```text
+>>>>>>> origin/main
 geo-demo-servico-publico/
   backend/
     package.json
@@ -60,6 +79,49 @@ geo-demo-servico-publico/
     index.html
     style.css
     script.js
+<<<<<<< HEAD
+  mobile/
+    package.json
+    App.js
+    app/
+    src/
+    assets/
+    README.md
+  docs/
+    ANALISE_PROJETO.md
+    RELATORIO_TECNICO.md
+    EXECUCAO_NPM.md
+    EXECUCAO_DOCKER.md
+    EXECUCAO_MOBILE.md
+    ARQUITETURA.md
+  Dockerfile
+  docker-compose.yml
+  .dockerignore
+  README.md
+```
+
+## Fallback obrigatório
+Se Nominatim falhar, o backend utiliza fallback hardcoded com `source: "fallback"`.
+
+## Execução rápida
+```bash
+cd geo-demo-servico-publico/backend
+npm install
+npm run dev
+```
+Acesse: `http://localhost:3340`
+
+## Docker
+```bash
+cd geo-demo-servico-publico
+docker compose up --build
+```
+
+## Mobile
+Ver instruções em `mobile/README.md` e `docs/EXECUCAO_MOBILE.md`.
+
+## Payload de exemplo
+=======
   README.md
 ```
 
@@ -85,6 +147,7 @@ Aplicação disponível em: `http://localhost:3340`
 
 ## Payload de exemplo para `POST /api/ocorrencias`
 
+>>>>>>> origin/main
 ```json
 {
   "nomeCidadao": "Maria Aparecida",
@@ -101,6 +164,13 @@ Aplicação disponível em: `http://localhost:3340`
 }
 ```
 
+<<<<<<< HEAD
+## Melhorias futuras
+- Persistência PostgreSQL + PostGIS
+- Autenticação e trilha de auditoria
+- Painel admin com dashboards por período e região
+- Integração de envio real de e-mail
+=======
 ## Resposta esperada de sucesso
 - `success: true`
 - `occurrence` com metadados e `dataHoraRegistro`
@@ -112,3 +182,4 @@ Aplicação disponível em: `http://localhost:3340`
 - Envio real de e-mail (SMTP/serviço transacional)
 - Painel administrativo com filtros por bairro/período
 - SLA e trilha completa de atendimento institucional
+>>>>>>> origin/main
