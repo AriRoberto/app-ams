@@ -334,6 +334,7 @@
       }
 
       async function loadRequests() {
+        showError('');
         const user = getUser();
         if (!user) {
           renderRequests([]);
@@ -445,6 +446,7 @@
         setUser(current);
         loadRequests();
       }
+      useBrowserGeolocation();
     </script>
   </body>
 </html>
