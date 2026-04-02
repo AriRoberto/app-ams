@@ -38,10 +38,10 @@ app.get('/', (_req, res) => {
   res.redirect('/app');
 });
 
-app.get('/api', (_req, res) => {
-  res.json({
+app.get('/api', (req, res) => {
+  const payload = {
     name: 'CidadeAtende API',
-    version: '1.1.1',
+    version: '1.1.2',
     health: '/api/health',
     meta: '/api/meta',
     endpoints: {
@@ -50,7 +50,26 @@ app.get('/api', (_req, res) => {
       listRequests: 'GET /api/requests?userId=<id>',
       updateStatus: 'PATCH /api/admin/requests/:id/status'
     }
-  });
+  };
+
+  if (req.accepts('html')) {
+    return res.type('html').send(`<!doctype html>
+<html lang="pt-BR">
+  <head><meta charset="UTF-8"/><title>CidadeAtende API</title></head>
+  <body style="font-family:Arial,sans-serif;padding:24px;max-width:900px;margin:auto">
+    <h1>CidadeAtende API</h1>
+    <p>API online com sucesso ✅</p>
+    <ul>
+      <li><a href="/api/health">GET /api/health</a></li>
+      <li><a href="/api/meta">GET /api/meta</a></li>
+      <li><a href="/app">Abrir interface web /app</a></li>
+    </ul>
+    <pre>${JSON.stringify(payload, null, 2)}</pre>
+  </body>
+</html>`);
+  }
+
+  return res.json(payload);
 });
 
 app.get('/api/health', (_req, res) => {
@@ -62,7 +81,7 @@ app.get('/api/meta', (_req, res) => {
     statuses: STATUS,
     categories: CATEGORIES,
     app: 'CidadeAtende',
-    version: '1.1.1'
+    version: '1.1.2'
   });
 });
 
