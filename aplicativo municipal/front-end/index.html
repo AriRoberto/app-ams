@@ -244,12 +244,12 @@
             <div class="buttonRow">
               <button class="button secondary" id="geoBtn" type="button">Usar minha localização</button>
             </div>
-            <p id="geoInfo" class="small">A localização será preenchida automaticamente quando permitido.</p>
+            <p id="geoInfo" class="small">Clique em "Usar minha localização" ou preencha endereço manualmente.</p>
 
             <input id="endereco" class="input" placeholder="Endereço de referência (fallback manual)" />
             <div class="buttonRow">
-              <input id="latitude" class="input" type="number" step="any" placeholder="Latitude" required />
-              <input id="longitude" class="input" type="number" step="any" placeholder="Longitude" required />
+              <input id="latitude" class="input" type="number" step="any" placeholder="Latitude (opcional se endereço preenchido)" />
+              <input id="longitude" class="input" type="number" step="any" placeholder="Longitude (opcional se endereço preenchido)" />
             </div>
             <input id="fotoUrl" class="input" placeholder="URL da foto (opcional)" />
             <button class="button" type="submit">Enviar solicitação</button>
@@ -420,8 +420,8 @@
           category: document.getElementById('category').value,
           descricao: document.getElementById('descricao').value,
           endereco: document.getElementById('endereco').value,
-          latitude: Number(document.getElementById('latitude').value),
-          longitude: Number(document.getElementById('longitude').value),
+          latitude: document.getElementById('latitude').value ? Number(document.getElementById('latitude').value) : null,
+          longitude: document.getElementById('longitude').value ? Number(document.getElementById('longitude').value) : null,
           fotoUrl: document.getElementById('fotoUrl').value
         };
 

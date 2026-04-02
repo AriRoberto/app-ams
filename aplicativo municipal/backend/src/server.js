@@ -174,8 +174,9 @@ app.post('/api/requests', async (req, res, next) => {
     if (!userId) return res.status(400).json({ message: 'userId é obrigatório.' });
     if (!CATEGORIES.includes(category)) return res.status(400).json({ message: 'Categoria inválida.' });
     if (descricao.length < 5) return res.status(400).json({ message: 'Descrição deve ter pelo menos 5 caracteres.' });
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      return res.status(400).json({ message: 'Latitude e longitude são obrigatórias.' });
+    const hasCoordinates = Number.isFinite(latitude) && Number.isFinite(longitude);
+    if (!hasCoordinates && endereco.length < 5) {
+      return res.status(400).json({ message: 'Informe coordenadas ou um endereço de referência válido.' });
     }
 
     const db = await readDb();
@@ -190,8 +191,8 @@ app.post('/api/requests', async (req, res, next) => {
       category,
       descricao,
       endereco,
-      latitude,
-      longitude,
+      latitude: hasCoordinates ? latitude : null,
+      longitude: hasCoordinates ? longitude : null,
       fotoUrl,
       status: 'RECEBIDO',
       history: [{ at: now, status: 'RECEBIDO', observacao: 'Solicitação registrada.' }],
