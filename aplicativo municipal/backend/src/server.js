@@ -38,6 +38,21 @@ app.get('/', (_req, res) => {
   res.redirect('/app');
 });
 
+app.get('/api', (_req, res) => {
+  res.json({
+    name: 'CidadeAtende API',
+    version: '1.1.1',
+    health: '/api/health',
+    meta: '/api/meta',
+    endpoints: {
+      register: 'POST /api/auth/register',
+      createRequest: 'POST /api/requests',
+      listRequests: 'GET /api/requests?userId=<id>',
+      updateStatus: 'PATCH /api/admin/requests/:id/status'
+    }
+  });
+});
+
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
@@ -47,7 +62,7 @@ app.get('/api/meta', (_req, res) => {
     statuses: STATUS,
     categories: CATEGORIES,
     app: 'CidadeAtende',
-    version: '1.1.0'
+    version: '1.1.1'
   });
 });
 
@@ -213,6 +228,13 @@ app.patch('/api/admin/requests/:id/status', async (req, res, next) => {
   } catch (error) {
     return next(error);
   }
+});
+
+app.use('/api', (_req, res) => {
+  res.status(404).json({
+    message: 'Endpoint não encontrado.',
+    tip: 'Consulte GET /api para ver rotas disponíveis.'
+  });
 });
 
 app.use((err, _req, res, _next) => {
