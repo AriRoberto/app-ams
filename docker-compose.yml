@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: cidadeatende-api
+    init: true
     ports:
       - "3334:3334"
     environment:
@@ -13,6 +14,8 @@ services:
       DB_FILE: /app/data/db.json
     volumes:
       - ams_data:/app/data
+    stop_signal: SIGTERM
+    stop_grace_period: 20s
     restart: unless-stopped
 
 volumes:

@@ -221,11 +221,40 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ message: 'Erro interno do servidor.' });
 });
 
+let server;
+
+function shutdown(signal) {
+  // eslint-disable-next-line no-console
+  console.log(`\nRecebido ${signal}. Encerrando CidadeAtende...`);
+  if (!server) {
+    process.exit(0);
+  }
+
+  server.close((error) => {
+    if (error) {
+      // eslint-disable-next-line no-console
+      console.error('Erro no shutdown graceful:', error);
+      process.exit(1);
+    }
+
+    process.exit(0);
+  });
+
+  setTimeout(() => {
+    // eslint-disable-next-line no-console
+    console.error('Timeout no shutdown. Forçando encerramento.');
+    process.exit(1);
+  }, 10000).unref();
+}
+
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, host, () => {
+  server = app.listen(port, host, () => {
     // eslint-disable-next-line no-console
     console.log(`AMS backend online on http://${host}:${port}`);
   });
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
 }
 
 export default app;
