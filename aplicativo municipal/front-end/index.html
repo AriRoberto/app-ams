@@ -333,7 +333,20 @@
         `).join('');
       }
 
+      async function fetchJson(url, options) {
+        const response = await fetch(url, options);
+        const data = await response.json();
+        if (!response.ok) {
+          const error = new Error(data.message || 'Falha na comunicação com API.');
+          error.status = response.status;
+          error.payload = data;
+          throw error;
+        }
+        return data;
+      }
+
       async function loadRequests() {
+        showError('');
         const user = getUser();
         if (!user) {
           renderRequests([]);
