@@ -1,4 +1,21 @@
 services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: geo-demo-db
+    environment:
+      POSTGRES_USER: geo
+      POSTGRES_PASSWORD: geo
+      POSTGRES_DB: geo_demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - geo_demo_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U geo -d geo_demo"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   geo-demo-api:
     build:
       context: .
@@ -8,4 +25,15 @@ services:
       - "3340:3340"
     environment:
       PORT: 3340
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: geo
+      DB_PASSWORD: geo
+      DB_NAME: geo_demo
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
+
+volumes:
+  geo_demo_db_data:

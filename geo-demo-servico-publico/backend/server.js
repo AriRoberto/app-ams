@@ -4,6 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import geoRoutes from './routes/geoRoutes.js';
 import occurrenceRoutes from './routes/occurrenceRoutes.js';
+import { closeDatabase, initDatabase } from './services/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,7 +16,7 @@ app.use(cors());
 app.use(express.json({ limit: '256kb' }));
 app.use(express.static(path.resolve(__dirname, '../frontend')));
 
-app.get('/api/health', (_req, res) => {
+app.get('/api/health', async (_req, res) => {
   res.json({
     status: 'ok',
     app: 'geo-demo-servico-publico',
@@ -53,31 +54,41 @@ app.use((error, _req, res, _next) => {
 
 let server;
 
-function shutdown(signal) {
+async function shutdown(signal) {
   // eslint-disable-next-line no-console
   console.log(`Recebido ${signal}. Encerrando servidor...`);
-  if (!server) process.exit(0);
 
-  server.close((error) => {
-    if (error) {
+  if (server) {
+    await new Promise((resolve, reject) => {
+      server.close((error) => {
+        if (error) return reject(error);
+        resolve();
+      });
+    });
+  }
+
+  await closeDatabase();
+  process.exit(0);
+}
+
+async function bootstrap() {
+  await initDatabase();
+
+  if (process.env.NODE_ENV !== 'test') {
+    server = app.listen(PORT, () => {
       // eslint-disable-next-line no-console
-      console.error('Erro ao encerrar servidor:', error);
-      process.exit(1);
-    }
-    process.exit(0);
-  });
+      console.log(`Geo demo running on http://localhost:${PORT}`);
+    });
 
-  setTimeout(() => process.exit(1), 10000).unref();
+    process.on('SIGINT', () => shutdown('SIGINT').catch(() => process.exit(1)));
+    process.on('SIGTERM', () => shutdown('SIGTERM').catch(() => process.exit(1)));
+  }
 }
 
-if (process.env.NODE_ENV !== 'test') {
-  server = app.listen(PORT, () => {
-    // eslint-disable-next-line no-console
-    console.log(`Geo demo running on http://localhost:${PORT}`);
-  });
-
-  process.on('SIGINT', () => shutdown('SIGINT'));
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-}
+bootstrap().catch((error) => {
+  // eslint-disable-next-line no-console
+  console.error('Falha ao iniciar aplicação:', error);
+  process.exit(1);
+});
 
 export default app;

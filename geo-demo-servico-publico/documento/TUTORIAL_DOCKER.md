@@ -15,7 +15,7 @@ cd geo-demo-servico-publico
 docker compose build
 ```
 
-3. Subir container:
+3. Subir containers (API + PostGIS):
 ```bash
 docker compose up -d
 ```
@@ -25,7 +25,7 @@ docker compose up -d
 docker compose ps
 ```
 
-5. Testar API:
+5. Testar API após banco saudável:
 ```bash
 curl http://localhost:3340/api/health
 curl http://localhost:3340/api/geo/sao-vicente-de-minas

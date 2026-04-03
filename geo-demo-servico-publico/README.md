@@ -47,6 +47,13 @@ curl http://localhost:3340/api/health
 curl http://localhost:3340/api/geo/sao-vicente-de-minas
 ```
 
+
+## Fase 1 executada (Persistência PostgreSQL + PostGIS)
+- Tabelas criadas: `occurrences`, `users`, `audit_logs`, `attachments`.
+- Geometria armazenada em `GEOGRAPHY(POINT, 4326)`.
+- Backend deixou de usar armazenamento em memória para ocorrências.
+- Compose atualizado com serviço `postgis/postgis`.
+
 ## Resposta esperada de sucesso
 - `success: true`
 - `occurrence` com metadados e `dataHoraRegistro`
