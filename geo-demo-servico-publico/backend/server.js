@@ -4,6 +4,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import geoRoutes from './routes/geoRoutes.js';
 import occurrenceRoutes from './routes/occurrenceRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
 import { closeDatabase, initDatabase } from './services/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -25,8 +27,10 @@ app.get('/api/health', async (_req, res) => {
   });
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/geo', geoRoutes);
 app.use('/api/ocorrencias', occurrenceRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.use((req, res, next) => {
   if (req.path.startsWith('/api')) {

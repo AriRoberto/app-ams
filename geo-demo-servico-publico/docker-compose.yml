@@ -30,6 +30,10 @@ services:
       DB_USER: geo
       DB_PASSWORD: geo
       DB_NAME: geo_demo
+      JWT_SECRET: dev-access-secret
+      JWT_REFRESH_SECRET: dev-refresh-secret
+      JWT_ACCESS_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
     depends_on:
       db:
         condition: service_healthy

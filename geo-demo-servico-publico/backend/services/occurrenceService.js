@@ -1,25 +1,30 @@
 import { randomUUID } from 'node:crypto';
 import { buildInstitutionalEmailPreview } from '../utils/emailBuilder.js';
+import { logStatusChange } from './auditService.js';
 import { query } from './db.js';
 
-export async function createOccurrence(payload) {
+export async function createOccurrence(payload, user) {
   const occurrence = {
     id: randomUUID(),
     ...payload,
-    dataHoraRegistro: new Date().toISOString()
+    userId: user.id,
+    dataHoraRegistro: new Date().toISOString(),
+    status: 'ABERTA'
   };
 
   await query(
     `INSERT INTO occurrences (
-      id, citizen_name, occurrence_type, description, reference_point,
-      destination_role, destination_email, city, uf, ibge_id, location, created_at
+      id, citizen_name, user_id, occurrence_type, description, reference_point,
+      destination_role, destination_email, city, uf, ibge_id, status, location, created_at
     ) VALUES (
       $1, $2, $3, $4, $5,
-      $6, $7, $8, $9, $10, ST_SetSRID(ST_MakePoint($11, $12), 4326)::geography, $13
+      $6, $7, $8, $9, $10, $11, $12,
+      ST_SetSRID(ST_MakePoint($13, $14), 4326)::geography, $15
     )`,
     [
       occurrence.id,
       occurrence.nomeCidadao,
+      occurrence.userId,
       occurrence.tipoOcorrencia,
       occurrence.descricao,
       occurrence.pontoReferencia,
@@ -28,16 +33,11 @@ export async function createOccurrence(payload) {
       occurrence.cidade,
       occurrence.uf,
       occurrence.ibge_id,
+      occurrence.status,
       occurrence.longitude,
       occurrence.latitude,
       occurrence.dataHoraRegistro
     ]
-  );
-
-  await query(
-    `INSERT INTO audit_logs (occurrence_id, action, actor, details)
-     VALUES ($1, 'CREATE_OCCURRENCE', 'SYSTEM', $2::jsonb)`,
-    [occurrence.id, JSON.stringify({ source: 'web_or_mobile_demo' })]
   );
 
   const emailPreview = buildInstitutionalEmailPreview(occurrence);
@@ -49,10 +49,10 @@ export async function createOccurrence(payload) {
   };
 }
 
-export async function listOccurrences() {
-  const result = await query(
-    `SELECT
+export async function listOccurrences(user) {
+  const baseQuery = `SELECT
       id,
+      user_id AS "userId",
       citizen_name AS "nomeCidadao",
       occurrence_type AS "tipoOcorrencia",
       description AS descricao,
@@ -62,12 +62,50 @@ export async function listOccurrences() {
       city AS cidade,
       uf,
       ibge_id,
+      status,
       ST_Y(location::geometry) AS latitude,
       ST_X(location::geometry) AS longitude,
       created_at AS "dataHoraRegistro"
-    FROM occurrences
-    ORDER BY created_at DESC`
-  );
+    FROM occurrences`;
 
+  if (user.role === 'cidadao') {
+    const result = await query(`${baseQuery} WHERE user_id = $1 ORDER BY created_at DESC`, [user.id]);
+    return result.rows;
+  }
+
+  const result = await query(`${baseQuery} ORDER BY created_at DESC`);
   return result.rows;
 }
+
+export async function updateOccurrenceStatus(id, novoStatus, auditContext) {
+  const oldData = await query('SELECT id, status FROM occurrences WHERE id = $1', [id]);
+  if (!oldData.rowCount) return null;
+
+  const statusAnterior = oldData.rows[0].status;
+  const updated = await query(
+    `UPDATE occurrences SET status = $2 WHERE id = $1
+     RETURNING id, status AS "statusNovo"`,
+    [id, novoStatus]
+  );
+
+  const payload = {
+    manifestacaoId: id,
+    statusAnterior,
+    statusNovo: updated.rows[0].statusNovo
+  };
+
+  // Hook de auditoria acionado automaticamente após mutação de status.
+  if (auditContext) {
+    await logStatusChange({
+      manifestacaoId: payload.manifestacaoId,
+      userId: auditContext.userId,
+      role: auditContext.role,
+      statusAnterior: payload.statusAnterior,
+      statusNovo: payload.statusNovo,
+      ipOrigem: auditContext.ipOrigem
+    });
+  }
+
+  return payload;
+}
+

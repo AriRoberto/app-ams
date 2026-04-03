@@ -11,8 +11,13 @@ Demo full stack de utilidade pública para registro de ocorrências urbanas com 
 ## Endpoints principais
 - `GET /api/health`
 - `GET /api/geo/sao-vicente-de-minas`
-- `GET /api/ocorrencias`
-- `POST /api/ocorrencias`
+- `GET /api/ocorrencias` (protegido)
+- `POST /api/ocorrencias` (protegido)
+- `PATCH /api/ocorrencias/:id/status` (admin/ouvidoria)
+- `POST /api/auth/login`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+- `GET /api/admin/audit` (admin)
 
 ## Estrutura
 ```bash
@@ -53,6 +58,14 @@ curl http://localhost:3340/api/geo/sao-vicente-de-minas
 - Geometria armazenada em `GEOGRAPHY(POINT, 4326)`.
 - Backend deixou de usar armazenamento em memória para ocorrências.
 - Compose atualizado com serviço `postgis/postgis`.
+
+
+## Fase 2 executada (Autenticação + Auditoria)
+- JWT com `accessToken` e `refreshToken`
+- Roles: `cidadao`, `admin`, `ouvidoria`
+- Middleware `authorize(...roles)` aplicado nas rotas protegidas
+- Trilha de auditoria para alteração de status
+- Endpoint admin para consulta: `GET /api/admin/audit`
 
 ## Resposta esperada de sucesso
 - `success: true`
