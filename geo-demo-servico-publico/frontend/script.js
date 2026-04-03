@@ -13,6 +13,15 @@ let marker;
 let rectangle;
 let cityGeo = null;
 
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
 function initMap() {
   map = L.map('map').setView([-21.7033330, -44.4438890], 12);
 
@@ -41,7 +50,7 @@ function updateMap(geo) {
   if (marker) map.removeLayer(marker);
   marker = L.marker([geo.lat, geo.lon])
     .addTo(map)
-    .bindPopup(`<strong>${geo.nome}/${geo.uf}</strong><br/>${geo.display_name}`)
+    .bindPopup(`<strong>${escapeHtml(geo.nome)}/${escapeHtml(geo.uf)}</strong><br/>${escapeHtml(geo.display_name)}`)
     .openPopup();
 
   if (rectangle) map.removeLayer(rectangle);
@@ -57,7 +66,11 @@ function updateMap(geo) {
 
 async function requestJson(url, options) {
   const response = await fetch(url, options);
-  const data = await response.json();
+  const contentType = response.headers.get('content-type') || '';
+  const data = contentType.includes('application/json')
+    ? await response.json()
+    : { message: await response.text() };
+
   if (!response.ok) {
     throw new Error(data.message || 'Falha de comunicação com a API.');
   }
@@ -84,16 +97,16 @@ async function loadGeoData() {
 
 function extractFormPayload() {
   return {
-    nomeCidadao: document.getElementById('nomeCidadao').value,
+    nomeCidadao: document.getElementById('nomeCidadao').value.trim(),
     tipoOcorrencia: document.getElementById('tipoOcorrencia').value,
-    descricao: document.getElementById('descricao').value,
-    pontoReferencia: document.getElementById('pontoReferencia').value,
+    descricao: document.getElementById('descricao').value.trim(),
+    pontoReferencia: document.getElementById('pontoReferencia').value.trim(),
     destinatario: document.getElementById('destinatario').value,
-    emailDestino: document.getElementById('emailDestino').value,
+    emailDestino: document.getElementById('emailDestino').value.trim(),
     latitude: Number(document.getElementById('latitude').value),
     longitude: Number(document.getElementById('longitude').value),
-    cidade: document.getElementById('cidade').value,
-    uf: document.getElementById('uf').value,
+    cidade: document.getElementById('cidade').value.trim(),
+    uf: document.getElementById('uf').value.trim(),
     ibge_id: Number(document.getElementById('ibge_id').value)
   };
 }

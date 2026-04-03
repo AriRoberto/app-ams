@@ -19,6 +19,7 @@ app.get('/api/health', (_req, res) => {
   res.json({
     status: 'ok',
     app: 'geo-demo-servico-publico',
+    uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString()
   });
 });
@@ -50,7 +51,33 @@ app.use((error, _req, res, _next) => {
   });
 });
 
-app.listen(PORT, () => {
+let server;
+
+function shutdown(signal) {
   // eslint-disable-next-line no-console
-  console.log(`Geo demo running on http://localhost:${PORT}`);
-});
+  console.log(`Recebido ${signal}. Encerrando servidor...`);
+  if (!server) process.exit(0);
+
+  server.close((error) => {
+    if (error) {
+      // eslint-disable-next-line no-console
+      console.error('Erro ao encerrar servidor:', error);
+      process.exit(1);
+    }
+    process.exit(0);
+  });
+
+  setTimeout(() => process.exit(1), 10000).unref();
+}
+
+if (process.env.NODE_ENV !== 'test') {
+  server = app.listen(PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Geo demo running on http://localhost:${PORT}`);
+  });
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+}
+
+export default app;
