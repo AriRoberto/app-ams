@@ -16,6 +16,17 @@ services:
       timeout: 5s
       retries: 10
 
+  redis:
+    image: redis:7-alpine
+    container_name: geo-demo-redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   geo-demo-api:
     build:
       context: .
@@ -30,12 +41,50 @@ services:
       DB_USER: geo
       DB_PASSWORD: geo
       DB_NAME: geo_demo
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       JWT_SECRET: dev-access-secret
       JWT_REFRESH_SECRET: dev-refresh-secret
       JWT_ACCESS_EXPIRES_IN: 15m
       JWT_REFRESH_EXPIRES_IN: 7d
+      SMTP_HOST: smtp.mailtrap.io
+      SMTP_PORT: 587
+      SMTP_USER: change-me
+      SMTP_PASS: change-me
+      SMTP_SECURE: "false"
+      MAIL_FROM: noreply@geo-demo.local
     depends_on:
       db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  email-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: geo-demo-email-worker
+    command: ["node", "backend/workers/emailWorker.js"]
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: geo
+      DB_PASSWORD: geo
+      DB_NAME: geo_demo
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      SMTP_HOST: smtp.mailtrap.io
+      SMTP_PORT: 587
+      SMTP_USER: change-me
+      SMTP_PASS: change-me
+      SMTP_SECURE: "false"
+      MAIL_FROM: noreply@geo-demo.local
+      EMAIL_QUEUE_CONCURRENCY: 5
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
 

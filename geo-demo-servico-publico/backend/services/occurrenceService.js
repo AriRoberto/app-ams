@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { buildInstitutionalEmailPreview } from '../utils/emailBuilder.js';
+import { enqueueInstitutionalEmail } from './emailQueueService.js';
 import { logStatusChange } from './auditService.js';
 import { query } from './db.js';
 
@@ -42,10 +43,19 @@ export async function createOccurrence(payload, user) {
 
   const emailPreview = buildInstitutionalEmailPreview(occurrence);
 
+  await enqueueInstitutionalEmail({
+    occurrenceId: occurrence.id,
+    to: emailPreview.destinatario,
+    subject: emailPreview.assunto,
+    text: emailPreview.corpo,
+    html: `<pre>${emailPreview.corpo.replaceAll('\n', '<br/>')}</pre>`
+  });
+
   return {
     success: true,
     occurrence,
-    emailPreview
+    emailPreview,
+    delivery: 'enfileirada'
   };
 }
 

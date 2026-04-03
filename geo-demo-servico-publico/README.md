@@ -60,6 +60,13 @@ curl http://localhost:3340/api/geo/sao-vicente-de-minas
 - Compose atualizado com serviço `postgis/postgis`.
 
 
+## Fase 3 executada (Envio real de e-mail)
+- Integração SMTP com Nodemailer
+- Fila `email-queue` via BullMQ + Redis
+- Worker dedicado para envio de e-mails
+- Retentativas automáticas e backoff exponencial
+- Persistência de status de entrega/falha no banco
+
 ## Fase 2 executada (Autenticação + Auditoria)
 - JWT com `accessToken` e `refreshToken`
 - Roles: `cidadao`, `admin`, `ouvidoria`
