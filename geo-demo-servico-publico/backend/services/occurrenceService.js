@@ -3,24 +3,30 @@ import { buildInstitutionalEmailPreview } from '../utils/emailBuilder.js';
 import { enqueueInstitutionalEmail } from './emailQueueService.js';
 import { logStatusChange } from './auditService.js';
 import { query } from './db.js';
+import { calculateSlaDeadline } from './slaService.js';
 
 export async function createOccurrence(payload, user) {
   const occurrence = {
     id: randomUUID(),
     ...payload,
+    bairro: payload.bairro || 'Não informado',
+    priority: payload.priority || 'normal',
     userId: user.id,
     dataHoraRegistro: new Date().toISOString(),
-    status: 'ABERTA'
+    status: 'ABERTA',
+    slaDeadline: calculateSlaDeadline(new Date())
   };
 
   await query(
     `INSERT INTO occurrences (
       id, citizen_name, user_id, occurrence_type, description, reference_point,
-      destination_role, destination_email, city, uf, ibge_id, status, location, created_at
+      bairro, priority, destination_role, destination_email,
+      city, uf, ibge_id, status, sla_deadline, location, created_at
     ) VALUES (
       $1, $2, $3, $4, $5,
-      $6, $7, $8, $9, $10, $11, $12,
-      ST_SetSRID(ST_MakePoint($13, $14), 4326)::geography, $15
+      $6, $7, $8, $9, $10,
+      $11, $12, $13, $14, $15,
+      ST_SetSRID(ST_MakePoint($16, $17), 4326)::geography, $18
     )`,
     [
       occurrence.id,
@@ -29,12 +35,15 @@ export async function createOccurrence(payload, user) {
       occurrence.tipoOcorrencia,
       occurrence.descricao,
       occurrence.pontoReferencia,
+      occurrence.bairro,
+      occurrence.priority,
       occurrence.destinatario,
       occurrence.emailDestino,
       occurrence.cidade,
       occurrence.uf,
       occurrence.ibge_id,
       occurrence.status,
+      occurrence.slaDeadline,
       occurrence.longitude,
       occurrence.latitude,
       occurrence.dataHoraRegistro
@@ -67,12 +76,16 @@ export async function listOccurrences(user) {
       occurrence_type AS "tipoOcorrencia",
       description AS descricao,
       reference_point AS "pontoReferencia",
+      bairro,
+      priority,
       destination_role AS destinatario,
       destination_email AS "emailDestino",
       city AS cidade,
       uf,
       ibge_id,
       status,
+      sla_deadline AS "slaDeadline",
+      resolved_at AS "resolvedAt",
       ST_Y(location::geometry) AS latitude,
       ST_X(location::geometry) AS longitude,
       created_at AS "dataHoraRegistro"
@@ -93,7 +106,10 @@ export async function updateOccurrenceStatus(id, novoStatus, auditContext) {
 
   const statusAnterior = oldData.rows[0].status;
   const updated = await query(
-    `UPDATE occurrences SET status = $2 WHERE id = $1
+    `UPDATE occurrences
+     SET status = $2,
+         resolved_at = CASE WHEN $2 = 'CONCLUIDA' THEN NOW() ELSE resolved_at END
+     WHERE id = $1
      RETURNING id, status AS "statusNovo"`,
     [id, novoStatus]
   );
@@ -104,7 +120,6 @@ export async function updateOccurrenceStatus(id, novoStatus, auditContext) {
     statusNovo: updated.rows[0].statusNovo
   };
 
-  // Hook de auditoria acionado automaticamente após mutação de status.
   if (auditContext) {
     await logStatusChange({
       manifestacaoId: payload.manifestacaoId,
@@ -118,4 +133,3 @@ export async function updateOccurrenceStatus(id, novoStatus, auditContext) {
 
   return payload;
 }
-

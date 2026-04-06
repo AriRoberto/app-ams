@@ -18,6 +18,9 @@ Demo full stack de utilidade pública para registro de ocorrências urbanas com 
 - `POST /api/auth/refresh`
 - `POST /api/auth/logout`
 - `GET /api/admin/audit` (admin)
+- `GET /api/admin/dashboard/metrics` (admin/ouvidoria)
+- `GET /api/admin/dashboard/tickets` (admin/ouvidoria)
+- `PATCH /api/admin/tickets/:id/status` (admin/ouvidoria)
 
 ## Estrutura
 ```bash
@@ -59,6 +62,13 @@ curl http://localhost:3340/api/geo/sao-vicente-de-minas
 - Backend deixou de usar armazenamento em memória para ocorrências.
 - Compose atualizado com serviço `postgis/postgis`.
 
+
+## Fase 4 executada (Painel Administrativo + SLA)
+- Endpoint de métricas: `GET /api/admin/dashboard/metrics`
+- Endpoint de chamados: `GET /api/admin/dashboard/tickets`
+- Atualização admin de status: `PATCH /api/admin/tickets/:id/status`
+- Painel web: `http://localhost:3340/admin.html`
+- Motor de SLA com níveis `ok`, `atencao`, `violado`
 
 ## Fase 3 executada (Envio real de e-mail)
 - Integração SMTP com Nodemailer

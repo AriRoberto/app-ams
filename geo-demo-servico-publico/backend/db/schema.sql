@@ -16,6 +16,8 @@ CREATE TABLE IF NOT EXISTS occurrences (
   occurrence_type TEXT NOT NULL,
   description TEXT NOT NULL,
   reference_point TEXT NOT NULL,
+  bairro TEXT DEFAULT 'Não informado',
+  priority TEXT DEFAULT 'normal',
   destination_role TEXT NOT NULL,
   destination_email TEXT NOT NULL,
   city TEXT NOT NULL,
@@ -25,6 +27,8 @@ CREATE TABLE IF NOT EXISTS occurrences (
   email_status TEXT NOT NULL DEFAULT 'pendente',
   email_last_error TEXT,
   email_sent_at TIMESTAMPTZ,
+  sla_deadline TIMESTAMPTZ,
+  resolved_at TIMESTAMPTZ,
   location GEOGRAPHY(POINT, 4326) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -71,15 +75,21 @@ CREATE TABLE IF NOT EXISTS attachments (
 
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id);
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'ABERTA';
+ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS bairro TEXT DEFAULT 'Não informado';
+ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS priority TEXT DEFAULT 'normal';
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS email_status TEXT NOT NULL DEFAULT 'pendente';
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS email_last_error TEXT;
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS email_sent_at TIMESTAMPTZ;
+ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS sla_deadline TIMESTAMPTZ;
+ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_occurrences_location ON occurrences USING GIST (location);
 CREATE INDEX IF NOT EXISTS idx_occurrences_created_at ON occurrences (created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_occurrences_status ON occurrences (status);
+CREATE INDEX IF NOT EXISTS idx_occurrences_bairro ON occurrences (bairro);
+CREATE INDEX IF NOT EXISTS idx_occurrences_sla_deadline ON occurrences (sla_deadline);
 CREATE INDEX IF NOT EXISTS idx_occurrences_email_status ON occurrences (email_status);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens (user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_manifestacao ON audit_logs (manifestacao_id);

@@ -14,6 +14,8 @@ export function validateOccurrencePayload(payload) {
   const descricao = sanitizeText(payload.descricao, 1200);
   const pontoReferencia = sanitizeText(payload.pontoReferencia, 240);
   const destinatario = sanitizeText(payload.destinatario, 64);
+  const bairro = sanitizeText(payload.bairro, 120);
+  const priority = sanitizeText(payload.priority, 20).toLowerCase() || 'normal';
   const emailDestino = sanitizeText(payload.emailDestino, 180).toLowerCase();
   const cidade = sanitizeText(payload.cidade, 120);
   const uf = sanitizeText(payload.uf, 2).toUpperCase();
@@ -28,6 +30,8 @@ export function validateOccurrencePayload(payload) {
   if (descricao.length < 10) errors.push('descricao deve ter pelo menos 10 caracteres.');
   if (pontoReferencia.length < 5) errors.push('pontoReferencia deve ter pelo menos 5 caracteres.');
   if (!DESTINATARIOS.includes(destinatario)) errors.push('destinatario inválido.');
+  if (bairro && bairro.length < 2) errors.push('bairro inválido.');
+  if (!['baixa', 'normal', 'alta'].includes(priority)) errors.push('priority inválida. Use: baixa|normal|alta.');
   if (!isValidEmail(emailDestino)) errors.push('emailDestino inválido.');
   if (cidade.length < 3) errors.push('cidade inválida.');
   if (uf.length !== 2) errors.push('uf inválida.');
@@ -43,6 +47,8 @@ export function validateOccurrencePayload(payload) {
       descricao,
       pontoReferencia,
       destinatario,
+      bairro: bairro || 'Não informado',
+      priority,
       emailDestino,
       cidade,
       uf,

@@ -118,3 +118,18 @@ pre, .json-view {
   .controls, .city-card { grid-column: span 12; }
   .hero h1 { font-size: 1.5rem; }
 }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 8px;
+}
+
+.sla-ok { color: #177245; font-weight: 700; }
+.sla-atencao { color: #d97706; font-weight: 700; }
+.sla-violado { color: #b3261e; font-weight: 700; }
