@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geo Demo Serviço Público | São Vicente de Minas/MG</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <header class="hero">
+      <h1>Demo Municipal de Geolocalização de Ocorrências</h1>
+      <p>
+        São Vicente de Minas/MG — Transformando reclamações genéricas em ocorrências estruturadas,
+        georreferenciadas e prontas para encaminhamento institucional.
+      </p>
+    </header>
+
+    <main class="container">
+      <section class="card controls">
+        <h2>Geolocalização oficial</h2>
+        <p>Carregue os dados territoriais via IBGE + Nominatim (com fallback automático).</p>
+        <button id="loadGeoBtn" class="primary-btn">Carregar geolocalização oficial</button>
+        <p id="geoStatus" class="status"></p>
+      </section>
+
+      <section class="card city-card">
+        <h2>Dados da cidade</h2>
+        <div id="cityInfo" class="json-view">Clique no botão acima para carregar os dados geográficos.</div>
+      </section>
+
+      <section class="card auth-card">
+        <h2>Autenticação</h2>
+        <div class="grid">
+          <label>E-mail
+            <input id="authEmail" type="email" value="cidadao@demo.local" placeholder="seu-email@dominio" />
+          </label>
+          <label>Senha
+            <input id="authPassword" type="password" value="Cidadao@123" placeholder="Sua senha" />
+          </label>
+        </div>
+
+        <div class="auth-actions">
+          <button id="loginBtn" class="primary-btn">Entrar</button>
+          <button id="quickAdminBtn" type="button">Entrar como Admin Demo</button>
+          <button id="logoutBtn" type="button">Sair</button>
+        </div>
+
+        <p id="authInfo" class="auth-info">Status: deslogado</p>
+        <p id="authMessage" class="status"></p>
+      </section>
+
+      <section class="card map-card">
+        <h2>Mapa e contexto territorial</h2>
+        <div id="map"></div>
+      </section>
+
+      <section class="card form-card">
+        <h2>Registrar ocorrência urbana</h2>
+        <form id="occurrenceForm">
+          <div class="grid">
+            <label>Nome do cidadão
+              <input id="nomeCidadao" required />
+            </label>
+            <label>Tipo da ocorrência
+              <select id="tipoOcorrencia" required>
+                <option value="LAMPADA_QUEIMADA">Lâmpada queimada</option>
+                <option value="BURACO_NA_RUA">Buraco na rua</option>
+                <option value="MATO_ALTO">Mato alto</option>
+                <option value="ENTULHO">Entulho</option>
+                <option value="VAZAMENTO">Vazamento</option>
+                <option value="PROBLEMA_ESCOLA">Problema em escola</option>
+                <option value="PROBLEMA_POSTO_SAUDE">Problema em posto de saúde</option>
+                <option value="PROBLEMA_PRACA">Problema em praça</option>
+                <option value="OUTRO">Outro</option>
+              </select>
+            </label>
+            <label>Ponto de referência
+              <input id="pontoReferencia" required />
+            </label>
+            <label>Destinatário institucional
+              <select id="destinatario" required>
+                <option value="PREFEITURA">Prefeitura</option>
+                <option value="SECRETARIA_MUNICIPAL">Secretaria Municipal</option>
+                <option value="OUVIDORIA">Ouvidoria</option>
+                <option value="VEREADOR">Vereador</option>
+                <option value="OUTRO_REPRESENTANTE">Outro representante</option>
+              </select>
+            </label>
+            <label>Email de destino
+              <input id="emailDestino" type="email" required placeholder="exemplo@orgaopublico.gov.br" />
+            </label>
+          </div>
+
+          <label>Descrição detalhada
+            <textarea id="descricao" rows="4" required></textarea>
+          </label>
+
+          <div class="grid readonly-grid">
+            <label>Latitude
+              <input id="latitude" readonly />
+            </label>
+            <label>Longitude
+              <input id="longitude" readonly />
+            </label>
+            <label>Cidade
+              <input id="cidade" readonly />
+            </label>
+            <label>UF
+              <input id="uf" readonly />
+            </label>
+            <label>Código IBGE
+              <input id="ibge_id" readonly />
+            </label>
+          </div>
+
+          <button id="submitOccurrenceBtn" type="submit" class="primary-btn">Registrar ocorrência</button>
+        </form>
+
+        <p id="submitMessage" class="status"></p>
+      </section>
+
+      <section class="card result-card">
+        <h2>JSON da ocorrência</h2>
+        <pre id="occurrenceJson">Aguardando envio...</pre>
+      </section>
+
+      <section class="card email-card">
+        <h2>Prévia do e-mail institucional</h2>
+        <pre id="emailPreview">Aguardando envio...</pre>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    <script src="./script.js"></script>
+  </body>
+</html>
