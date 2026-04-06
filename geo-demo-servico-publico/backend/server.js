@@ -7,6 +7,7 @@ import occurrenceRoutes from './routes/occurrenceRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import { closeDatabase, initDatabase } from './services/db.js';
+import { BAIRROS_SAO_VICENTE } from './utils/bairros.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -25,6 +26,11 @@ app.get('/api/health', async (_req, res) => {
     uptimeSeconds: Math.floor(process.uptime()),
     timestamp: new Date().toISOString()
   });
+});
+
+
+app.get('/api/bairros', (_req, res) => {
+  res.json({ success: true, data: BAIRROS_SAO_VICENTE });
 });
 
 app.use('/api/auth', authRoutes);

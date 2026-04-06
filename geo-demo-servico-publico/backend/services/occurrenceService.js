@@ -4,6 +4,30 @@ import { enqueueInstitutionalEmail } from './emailQueueService.js';
 import { logStatusChange } from './auditService.js';
 import { query } from './db.js';
 import { calculateSlaDeadline } from './slaService.js';
+import { formatOccurrenceRow } from '../utils/occurrenceMapper.js';
+
+const BASE_SELECT = `SELECT
+  id,
+  user_id AS "userId",
+  citizen_name AS "nomeCidadao",
+  occurrence_type AS "tipoOcorrencia",
+  description AS descricao,
+  reference_point AS "pontoReferencia",
+  COALESCE(bairro, 'Não informado') AS bairro,
+  priority,
+  destination_role AS destinatario,
+  destination_email AS "emailDestino",
+  city AS cidade,
+  uf,
+  ibge_id,
+  status,
+  sla_deadline AS "slaDeadline",
+  resolved_at AS "resolvedAt",
+  ST_Y(location::geometry) AS latitude,
+  ST_X(location::geometry) AS longitude,
+  created_at AS "dataHoraRegistro"
+FROM occurrences`;
+
 
 export async function createOccurrence(payload, user) {
   const occurrence = {
@@ -69,35 +93,28 @@ export async function createOccurrence(payload, user) {
 }
 
 export async function listOccurrences(user) {
-  const baseQuery = `SELECT
-      id,
-      user_id AS "userId",
-      citizen_name AS "nomeCidadao",
-      occurrence_type AS "tipoOcorrencia",
-      description AS descricao,
-      reference_point AS "pontoReferencia",
-      bairro,
-      priority,
-      destination_role AS destinatario,
-      destination_email AS "emailDestino",
-      city AS cidade,
-      uf,
-      ibge_id,
-      status,
-      sla_deadline AS "slaDeadline",
-      resolved_at AS "resolvedAt",
-      ST_Y(location::geometry) AS latitude,
-      ST_X(location::geometry) AS longitude,
-      created_at AS "dataHoraRegistro"
-    FROM occurrences`;
-
   if (user.role === 'cidadao') {
-    const result = await query(`${baseQuery} WHERE user_id = $1 ORDER BY created_at DESC`, [user.id]);
-    return result.rows;
+    const result = await query(`${BASE_SELECT} WHERE user_id = $1 ORDER BY created_at DESC`, [user.id]);
+    return result.rows.map(formatOccurrenceRow);
   }
 
-  const result = await query(`${baseQuery} ORDER BY created_at DESC`);
-  return result.rows;
+  const result = await query(`${BASE_SELECT} ORDER BY created_at DESC`);
+  return result.rows.map(formatOccurrenceRow);
+}
+
+export async function getOccurrenceById(id, user) {
+  const params = [id];
+  let sql = `${BASE_SELECT} WHERE id = $1`;
+
+  if (user.role === 'cidadao') {
+    params.push(user.id);
+    sql += ' AND user_id = $2';
+  }
+
+  const result = await query(sql, params);
+  if (!result.rowCount) return null;
+
+  return formatOccurrenceRow(result.rows[0]);
 }
 
 export async function updateOccurrenceStatus(id, novoStatus, auditContext) {

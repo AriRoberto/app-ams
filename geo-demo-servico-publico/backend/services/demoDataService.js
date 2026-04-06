@@ -5,7 +5,7 @@ import { calculateSlaDeadline, classifySlaStatus } from './slaService.js';
 
 const DEMO_CLEANUP_NOTIFY_TO = 'ariroberto@gmail.com';
 
-const BAIRROS = ['Centro', 'Nossa Senhora Aparecida', 'Rosário', 'Cachoeirinha', 'Santo Antônio', 'Boa Vista'];
+const BAIRROS = ['Centro', 'Cidade Nova', 'Vila Nova'];
 const CATEGORIAS = ['BURACO_NA_RUA', 'ILUMINACAO_PUBLICA', 'LIMPEZA_URBANA', 'AGUA_ESGOTO'];
 const STATUS = ['ABERTA', 'EM_ANALISE', 'EM_ATENDIMENTO', 'CONCLUIDA'];
 const PRIORITIES = ['baixa', 'normal', 'alta'];

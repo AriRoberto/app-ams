@@ -11,7 +11,9 @@ Demo full stack de utilidade pública para registro de ocorrências urbanas com 
 ## Endpoints principais
 - `GET /api/health`
 - `GET /api/geo/sao-vicente-de-minas`
+- `GET /api/bairros`
 - `GET /api/ocorrencias` (protegido)
+- `GET /api/ocorrencias/:id` (protegido)
 - `POST /api/ocorrencias` (protegido)
 - `PATCH /api/ocorrencias/:id/status` (admin/ouvidoria)
 - `POST /api/auth/login`
@@ -104,3 +106,10 @@ curl http://localhost:3340/api/geo/sao-vicente-de-minas
 - Dashboard e perfis de acesso: `documento/GUIA_DASHBOARD_E_ACESSOS.md`
 - Auditoria de documentação (2026-04-06): `documento/AUDITORIA_DOCUMENTACAO_2026-04-06.md`
 
+
+## Bairros iniciais (São Vicente de Minas/MG)
+- Centro
+- Cidade Nova
+- Vila Nova
+
+Registros antigos sem valor continuam exibidos como `Não informado`.

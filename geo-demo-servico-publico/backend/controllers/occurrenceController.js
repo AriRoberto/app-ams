@@ -1,4 +1,4 @@
-import { createOccurrence, listOccurrences, updateOccurrenceStatus } from '../services/occurrenceService.js';
+import { createOccurrence, getOccurrenceById, listOccurrences, updateOccurrenceStatus } from '../services/occurrenceService.js';
 import { validateOccurrencePayload } from '../utils/validators.js';
 
 const ALLOWED_STATUS = ['ABERTA', 'EM_ANALISE', 'EM_ATENDIMENTO', 'CONCLUIDA'];
@@ -55,6 +55,19 @@ export async function updateOccurrenceStatusController(req, res, next) {
 
 
     return res.json({ success: true, ...updated });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+
+export async function getOccurrenceByIdController(req, res, next) {
+  try {
+    const id = String(req.params.id || '').trim();
+    const item = await getOccurrenceById(id, req.user);
+    if (!item) return res.status(404).json({ success: false, message: 'Ocorrência não encontrada.' });
+
+    return res.json({ success: true, data: item });
   } catch (error) {
     return next(error);
   }

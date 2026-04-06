@@ -75,6 +75,11 @@
                 <option value="OUTRO">Outro</option>
               </select>
             </label>
+            <label>Bairro
+              <select id="bairro" required>
+                <option value="" selected disabled>Selecione um bairro</option>
+              </select>
+            </label>
             <label>Ponto de referência
               <input id="pontoReferencia" required />
             </label>
@@ -118,6 +123,30 @@
         </form>
 
         <p id="submitMessage" class="status"></p>
+      </section>
+
+
+      <section class="card result-card">
+        <h2>Minhas ocorrências</h2>
+        <div class="grid">
+          <label>Filtrar por bairro
+            <select id="filterBairro">
+              <option value="">Todos</option>
+            </select>
+          </label>
+          <button id="loadOccurrencesBtn" type="button">Atualizar listagem</button>
+        </div>
+        <table id="occurrenceTable">
+          <thead>
+            <tr><th>ID</th><th>Bairro</th><th>Tipo</th><th>Status</th><th>Data</th><th>Detalhes</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </section>
+
+      <section class="card result-card">
+        <h2>Detalhes da ocorrência</h2>
+        <pre id="occurrenceDetailJson">Selecione uma ocorrência na tabela para visualizar detalhes.</pre>
       </section>
 
       <section class="card result-card">

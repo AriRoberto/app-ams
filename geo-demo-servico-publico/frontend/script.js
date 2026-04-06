@@ -11,9 +11,14 @@ const geoStatus = document.getElementById('geoStatus');
 const cityInfo = document.getElementById('cityInfo');
 const submitMessage = document.getElementById('submitMessage');
 const occurrenceJson = document.getElementById('occurrenceJson');
+const occurrenceDetailJson = document.getElementById('occurrenceDetailJson');
 const emailPreview = document.getElementById('emailPreview');
 const occurrenceForm = document.getElementById('occurrenceForm');
 const submitOccurrenceBtn = document.getElementById('submitOccurrenceBtn');
+const loadOccurrencesBtn = document.getElementById('loadOccurrencesBtn');
+const occurrenceTableBody = document.querySelector('#occurrenceTable tbody');
+const bairroSelect = document.getElementById('bairro');
+const filterBairro = document.getElementById('filterBairro');
 
 const authEmail = document.getElementById('authEmail');
 const authPassword = document.getElementById('authPassword');
@@ -27,6 +32,8 @@ let map;
 let marker;
 let rectangle;
 let cityGeo = null;
+let allowedBairros = [];
+let currentOccurrences = [];
 
 function escapeHtml(value) {
   return String(value)
@@ -133,6 +140,41 @@ function updateMap(geo) {
   map.fitBounds(rectangle.getBounds(), { padding: [20, 20] });
 }
 
+function buildBairroOptions() {
+  bairroSelect.innerHTML = '<option value="" selected disabled>Selecione um bairro</option>';
+  filterBairro.innerHTML = '<option value="">Todos</option>';
+
+  allowedBairros.forEach((bairro) => {
+    const optionForm = document.createElement('option');
+    optionForm.value = bairro;
+    optionForm.textContent = bairro;
+    bairroSelect.appendChild(optionForm);
+
+    const optionFilter = document.createElement('option');
+    optionFilter.value = bairro;
+    optionFilter.textContent = bairro;
+    filterBairro.appendChild(optionFilter);
+  });
+}
+
+function renderOccurrenceTable(rows) {
+  if (!rows.length) {
+    occurrenceTableBody.innerHTML = '<tr><td colspan="6">Nenhuma ocorrência encontrada.</td></tr>';
+    return;
+  }
+
+  occurrenceTableBody.innerHTML = rows.map((item) => `
+    <tr>
+      <td>${item.id}</td>
+      <td>${item.bairro || 'Não informado'}</td>
+      <td>${item.tipoOcorrencia}</td>
+      <td>${item.status}</td>
+      <td>${new Date(item.dataHoraRegistro).toLocaleString('pt-BR')}</td>
+      <td><button data-id="${item.id}" class="detailBtn" type="button">Ver</button></td>
+    </tr>
+  `).join('');
+}
+
 async function parseApiResponse(response) {
   const contentType = response.headers.get('content-type') || '';
   if (contentType.includes('application/json')) {
@@ -210,6 +252,16 @@ async function requestJson(url, options) {
   return data;
 }
 
+async function loadBairros() {
+  try {
+    const response = await requestJson(`${API_BASE}/bairros`);
+    allowedBairros = response.data || [];
+    buildBairroOptions();
+  } catch (error) {
+    setStatus(submitMessage, `Falha ao carregar bairros: ${error.message}`, 'error');
+  }
+}
+
 async function loadGeoData() {
   setStatus(geoStatus, 'Carregando geolocalização oficial...', '');
 
@@ -232,6 +284,7 @@ function extractFormPayload() {
   return {
     nomeCidadao: document.getElementById('nomeCidadao').value.trim(),
     tipoOcorrencia: document.getElementById('tipoOcorrencia').value,
+    bairro: document.getElementById('bairro').value,
     descricao: document.getElementById('descricao').value.trim(),
     pontoReferencia: document.getElementById('pontoReferencia').value.trim(),
     destinatario: document.getElementById('destinatario').value,
@@ -244,6 +297,32 @@ function extractFormPayload() {
   };
 }
 
+async function loadOccurrences() {
+  if (!isAuthenticated()) {
+    occurrenceTableBody.innerHTML = '<tr><td colspan="6">Faça login para visualizar ocorrências.</td></tr>';
+    return;
+  }
+
+  const response = await authFetch(`${API_BASE}/ocorrencias`);
+  const selectedBairro = filterBairro.value;
+  currentOccurrences = response.data || [];
+
+  const filtered = selectedBairro
+    ? currentOccurrences.filter((item) => item.bairro === selectedBairro)
+    : currentOccurrences;
+
+  renderOccurrenceTable(filtered);
+}
+
+async function loadOccurrenceDetail(id) {
+  try {
+    const response = await authFetch(`${API_BASE}/ocorrencias/${id}`);
+    occurrenceDetailJson.textContent = JSON.stringify(response.data, null, 2);
+  } catch (error) {
+    occurrenceDetailJson.textContent = `Erro ao carregar detalhe: ${error.message}`;
+  }
+}
+
 async function loginWithCredentials(email, password) {
   const data = await requestJson(`${API_BASE}/auth/login`, {
     method: 'POST',
@@ -254,6 +333,7 @@ async function loginWithCredentials(email, password) {
   setAuthSession(data);
   updateAuthUI();
   setStatus(authMessage, 'Login realizado com sucesso.', 'success');
+  await loadOccurrences();
 }
 
 async function onLogin() {
@@ -294,6 +374,8 @@ async function onLogout() {
   } finally {
     clearAuthSession();
     updateAuthUI();
+    occurrenceTableBody.innerHTML = '<tr><td colspan="6">Faça login para visualizar ocorrências.</td></tr>';
+    occurrenceDetailJson.textContent = 'Selecione uma ocorrência na tabela para visualizar detalhes.';
     setStatus(authMessage, 'Logout realizado. Faça login para registrar novas ocorrências.', 'success');
   }
 }
@@ -312,6 +394,11 @@ async function onSubmitOccurrence(event) {
     return;
   }
 
+  if (!bairroSelect.value) {
+    setStatus(submitMessage, 'Selecione um bairro antes de enviar.', 'error');
+    return;
+  }
+
   const payload = extractFormPayload();
 
   try {
@@ -321,9 +408,11 @@ async function onSubmitOccurrence(event) {
     });
 
     occurrenceJson.textContent = JSON.stringify(result.occurrence, null, 2);
+    occurrenceDetailJson.textContent = JSON.stringify(result.occurrence, null, 2);
     emailPreview.textContent = `Assunto: ${result.emailPreview.assunto}\nPara: ${result.emailPreview.destinatario}\n\n${result.emailPreview.corpo}`;
 
     setStatus(submitMessage, 'Ocorrência registrada com sucesso e pronta para encaminhamento institucional.', 'success');
+    await loadOccurrences();
   } catch (error) {
     setStatus(submitMessage, error.message, 'error');
   }
@@ -334,6 +423,14 @@ occurrenceForm.addEventListener('submit', onSubmitOccurrence);
 loginBtn.addEventListener('click', onLogin);
 quickAdminBtn.addEventListener('click', onQuickAdminLogin);
 logoutBtn.addEventListener('click', onLogout);
+loadOccurrencesBtn.addEventListener('click', loadOccurrences);
+filterBairro.addEventListener('change', loadOccurrences);
+occurrenceTableBody.addEventListener('click', (event) => {
+  const button = event.target.closest('.detailBtn');
+  if (!button) return;
+  loadOccurrenceDetail(button.dataset.id);
+});
 
 updateAuthUI();
 initMap();
+loadBairros();
