@@ -14,6 +14,12 @@ function qs() {
   return params.toString();
 }
 
+function setDemoStatus(message, type = 'success') {
+  const status = document.getElementById('demoStatus');
+  status.textContent = message;
+  status.className = `status ${type}`;
+}
+
 async function login() {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
@@ -29,7 +35,9 @@ async function login() {
   }
 
   accessToken = data.accessToken;
+  setDemoStatus(`Sessão iniciada como ${data.user.role}.`);
   loadDashboard();
+  return null;
 }
 
 function metricCard(title, value) {
@@ -72,10 +80,10 @@ async function loadDashboard() {
       <td>${ticket.tempo_restante}</td>
       <td>
         <select data-id="${ticket.id}">
-          <option>ABERTA</option>
-          <option>EM_ANALISE</option>
-          <option>EM_ATENDIMENTO</option>
-          <option>CONCLUIDA</option>
+          <option ${ticket.status === 'ABERTA' ? 'selected' : ''}>ABERTA</option>
+          <option ${ticket.status === 'EM_ANALISE' ? 'selected' : ''}>EM_ANALISE</option>
+          <option ${ticket.status === 'EM_ATENDIMENTO' ? 'selected' : ''}>EM_ATENDIMENTO</option>
+          <option ${ticket.status === 'CONCLUIDA' ? 'selected' : ''}>CONCLUIDA</option>
         </select>
         <button onclick="updateStatus('${ticket.id}')">Salvar</button>
       </td>
@@ -94,8 +102,51 @@ async function updateStatus(id) {
   const payload = await res.json();
   if (!res.ok) return alert(payload.message || 'Falha ao atualizar status');
   loadDashboard();
+  return null;
+}
+
+async function seedDemoData() {
+  if (!accessToken) return alert('Faça login primeiro.');
+  const total = Number(document.getElementById('demoTotal').value || 24);
+
+  const res = await fetch(`${API}/admin/demo-data/seed`, {
+    method: 'POST',
+    headers: headers(),
+    body: JSON.stringify({ total })
+  });
+
+  const payload = await res.json();
+  if (!res.ok) {
+    setDemoStatus(payload.message || 'Falha ao criar massa demo.', 'error');
+    return;
+  }
+
+  setDemoStatus(`Massa demo criada: ${payload.data.inserted} registros (ok: ${payload.data.summary.ok}, a vencer: ${payload.data.summary.atencao}, vencido: ${payload.data.summary.violado}).`);
+  loadDashboard();
+}
+
+async function clearDemoData() {
+  if (!accessToken) return alert('Faça login primeiro.');
+  const proceed = window.confirm('Confirma remoção de TODOS os dados de demonstração?');
+  if (!proceed) return;
+
+  const res = await fetch(`${API}/admin/demo-data`, {
+    method: 'DELETE',
+    headers: headers()
+  });
+
+  const payload = await res.json();
+  if (!res.ok) {
+    setDemoStatus(payload.message || 'Falha ao limpar massa demo.', 'error');
+    return;
+  }
+
+  setDemoStatus(`Limpeza concluída: ${payload.data.removed} registros removidos. Notificação enviada para ${payload.data.notified}.`);
+  loadDashboard();
 }
 
 window.updateStatus = updateStatus;
 document.getElementById('loginBtn').addEventListener('click', login);
 document.getElementById('applyBtn').addEventListener('click', loadDashboard);
+document.getElementById('seedDemoBtn').addEventListener('click', seedDemoData);
+document.getElementById('clearDemoBtn').addEventListener('click', clearDemoData);

@@ -21,6 +21,8 @@ Demo full stack de utilidade pública para registro de ocorrências urbanas com 
 - `GET /api/admin/dashboard/metrics` (admin/ouvidoria)
 - `GET /api/admin/dashboard/tickets` (admin/ouvidoria)
 - `PATCH /api/admin/tickets/:id/status` (admin/ouvidoria)
+- `POST /api/admin/demo-data/seed` (admin/ouvidoria)
+- `DELETE /api/admin/demo-data` (admin/ouvidoria)
 
 ## Estrutura
 ```bash
@@ -69,6 +71,7 @@ curl http://localhost:3340/api/geo/sao-vicente-de-minas
 - Atualização admin de status: `PATCH /api/admin/tickets/:id/status`
 - Painel web: `http://localhost:3340/admin.html`
 - Motor de SLA com níveis `ok`, `atencao`, `violado`
+- Massa de dados demo para SLA com limpeza e notificação por e-mail
 
 ## Fase 3 executada (Envio real de e-mail)
 - Integração SMTP com Nodemailer

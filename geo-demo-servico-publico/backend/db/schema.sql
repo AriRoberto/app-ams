@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS occurrences (
   email_sent_at TIMESTAMPTZ,
   sla_deadline TIMESTAMPTZ,
   resolved_at TIMESTAMPTZ,
+  is_demo BOOLEAN NOT NULL DEFAULT FALSE,
   location GEOGRAPHY(POINT, 4326) NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -82,6 +83,7 @@ ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS email_last_error TEXT;
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS email_sent_at TIMESTAMPTZ;
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS sla_deadline TIMESTAMPTZ;
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ;
+ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT FALSE;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
 
@@ -90,6 +92,7 @@ CREATE INDEX IF NOT EXISTS idx_occurrences_created_at ON occurrences (created_at
 CREATE INDEX IF NOT EXISTS idx_occurrences_status ON occurrences (status);
 CREATE INDEX IF NOT EXISTS idx_occurrences_bairro ON occurrences (bairro);
 CREATE INDEX IF NOT EXISTS idx_occurrences_sla_deadline ON occurrences (sla_deadline);
+CREATE INDEX IF NOT EXISTS idx_occurrences_is_demo ON occurrences (is_demo);
 CREATE INDEX IF NOT EXISTS idx_occurrences_email_status ON occurrences (email_status);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens (user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_manifestacao ON audit_logs (manifestacao_id);
