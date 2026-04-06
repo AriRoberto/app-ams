@@ -29,6 +29,27 @@
         <div id="cityInfo" class="json-view">Clique no botão acima para carregar os dados geográficos.</div>
       </section>
 
+      <section class="card auth-card">
+        <h2>Autenticação</h2>
+        <div class="grid">
+          <label>E-mail
+            <input id="authEmail" type="email" value="cidadao@demo.local" placeholder="seu-email@dominio" />
+          </label>
+          <label>Senha
+            <input id="authPassword" type="password" value="Cidadao@123" placeholder="Sua senha" />
+          </label>
+        </div>
+
+        <div class="auth-actions">
+          <button id="loginBtn" class="primary-btn">Entrar</button>
+          <button id="quickAdminBtn" type="button">Entrar como Admin Demo</button>
+          <button id="logoutBtn" type="button">Sair</button>
+        </div>
+
+        <p id="authInfo" class="auth-info">Status: deslogado</p>
+        <p id="authMessage" class="status"></p>
+      </section>
+
       <section class="card map-card">
         <h2>Mapa e contexto territorial</h2>
         <div id="map"></div>
@@ -93,7 +114,7 @@
             </label>
           </div>
 
-          <button type="submit" class="primary-btn">Registrar ocorrência</button>
+          <button id="submitOccurrenceBtn" type="submit" class="primary-btn">Registrar ocorrência</button>
         </form>
 
         <p id="submitMessage" class="status"></p>

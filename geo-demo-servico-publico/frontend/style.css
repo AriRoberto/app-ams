@@ -48,6 +48,7 @@ body {
 
 .controls, .city-card { grid-column: span 6; }
 .map-card, .form-card, .result-card, .email-card { grid-column: span 12; }
+.auth-card { grid-column: span 12; }
 
 h2 { margin-top: 0; }
 
@@ -146,3 +147,24 @@ th, td {
 .sla-violado { color: #b3261e; font-weight: 700; }
 
 #demoStatus { margin-top: 10px; }
+
+
+.auth-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.auth-info {
+  margin: 12px 0 4px;
+  font-weight: 600;
+}
+
+.auth-on { color: #177245; }
+.auth-off { color: #b3261e; }
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
