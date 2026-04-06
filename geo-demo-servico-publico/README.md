@@ -95,3 +95,9 @@ curl http://localhost:3340/api/geo/sao-vicente-de-minas
 - Envio real de e-mail (SMTP/serviço transacional) com integração institucional
 - Painel administrativo com filtros por bairro/período e dashboards por período/região
 - SLA e trilha completa de atendimento institucional
+
+## Onboarding e documentação recomendada
+- Setup local completo: `documento/GUIA_CONFIG_LOCAL_DEMO.md`
+- Dashboard e perfis de acesso: `documento/GUIA_DASHBOARD_E_ACESSOS.md`
+- Auditoria de documentação (2026-04-06): `documento/AUDITORIA_DOCUMENTACAO_2026-04-06.md`
+
