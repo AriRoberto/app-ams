@@ -1,0 +1,148 @@
+:root {
+  --bg: #f1f5fb;
+  --surface: #ffffff;
+  --primary: #0b5cad;
+  --primary-dark: #083f78;
+  --text: #1d2939;
+  --muted: #5b6677;
+  --border: #d8e2ef;
+  --success: #177245;
+  --danger: #b3261e;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.hero {
+  background: linear-gradient(120deg, #07396f, #0b5cad 60%, #2f89d7);
+  color: #fff;
+  padding: 28px 20px;
+  text-align: center;
+}
+
+.hero h1 { margin: 0 0 8px; font-size: 1.9rem; }
+.hero p { margin: 0 auto; max-width: 860px; opacity: .95; }
+
+.container {
+  max-width: 1200px;
+  margin: 18px auto;
+  padding: 0 14px 24px;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(12, 1fr);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 5px 16px rgba(13, 40, 78, 0.08);
+}
+
+.controls, .city-card { grid-column: span 6; }
+.map-card, .form-card, .result-card, .email-card { grid-column: span 12; }
+
+h2 { margin-top: 0; }
+
+.primary-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 11px 14px;
+  background: linear-gradient(120deg, var(--primary), #1975c7);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary-btn:hover { filter: brightness(1.07); }
+
+button {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:hover { background: #f6f8fc; }
+
+#map {
+  width: 100%;
+  height: 380px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: .92rem;
+}
+
+input, select, textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font: inherit;
+  color: var(--text);
+}
+
+input[readonly] {
+  background: #f7f9fd;
+}
+
+pre, .json-view {
+  margin: 0;
+  background: #0d223f;
+  color: #e6efff;
+  border-radius: 10px;
+  padding: 12px;
+  overflow: auto;
+  font-size: .85rem;
+}
+
+.status {
+  min-height: 22px;
+  font-weight: 600;
+}
+
+.status.success { color: var(--success); }
+.status.error { color: var(--danger); }
+
+@media (max-width: 800px) {
+  .controls, .city-card { grid-column: span 12; }
+  .hero h1 { font-size: 1.5rem; }
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th, td {
+  border: 1px solid var(--border);
+  padding: 8px;
+}
+
+.sla-ok { color: #177245; font-weight: 700; }
+.sla-atencao { color: #d97706; font-weight: 700; }
+.sla-violado { color: #b3261e; font-weight: 700; }
+
+#demoStatus { margin-top: 10px; }
