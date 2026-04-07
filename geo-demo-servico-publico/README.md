@@ -120,3 +120,9 @@ Registros antigos sem valor continuam exibidos como `Não informado`.
 - Script sob demanda: `npm run import:logradouros -- "../Logradouros_Zonas Valendo.xls"`
 - Endpoint admin isolado: `POST /api/admin/logradouros/import`
 - Relatório com total importado, duplicatas e falhas por linha
+
+### Importação no container Docker
+```bash
+docker cp "Logradouros_Zonas Valendo.xls" geo-demo-api:/tmp/Logradouros_Zonas\ Valendo.xls
+docker compose exec geo-demo-api npm run import:logradouros -- "/tmp/Logradouros_Zonas Valendo.xls"
+```

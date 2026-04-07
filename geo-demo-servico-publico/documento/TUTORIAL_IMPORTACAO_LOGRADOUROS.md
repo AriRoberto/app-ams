@@ -50,3 +50,31 @@ Consulta dos importados:
 - Duplicatas detectadas por `(logradouro, bairro, zona)`
 - Relatório final com `imported`, `skippedDuplicates`, `failed` e lista de falhas por linha
 
+
+
+## Execução no Docker (recomendado para imagem publicada)
+
+### 1) Confirmar serviço da API
+```bash
+docker compose ps
+```
+
+### 2) Copiar XLS do host para o container da API
+```bash
+docker cp "Logradouros_Zonas Valendo.xls" geo-demo-api:/tmp/Logradouros_Zonas\ Valendo.xls
+```
+
+### 3) Rodar importação dentro do container
+```bash
+docker compose exec geo-demo-api npm run import:logradouros -- "/tmp/Logradouros_Zonas Valendo.xls"
+```
+
+### 4) Validar resultado no backend
+```bash
+docker compose exec geo-demo-api sh -lc 'node -e "import(\'./backend/services/db.js\').then(async ({query,closeDatabase})=>{const r=await query(\'SELECT COUNT(*)::int AS total FROM logradouros\'); console.log(r.rows[0]); await closeDatabase(); process.exit(0);})"'
+```
+
+### 5) Verificar via API
+```bash
+curl -H "Authorization: Bearer <TOKEN_ADMIN>" http://localhost:3340/api/admin/logradouros
+```
