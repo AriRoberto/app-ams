@@ -3,7 +3,7 @@
 Este fluxo importa dados da planilha `Logradouros_Zonas Valendo.xls` para a tabela `logradouros` sem afetar ocorrências já existentes.
 
 ## Estrutura esperada no Excel
-A importação detecta e mapeia cabeçalhos por aliases. Campos principais:
+A importação detecta e mapeia cabeçalhos por aliases. Ela também ignora linhas de título no topo da planilha (ex.: texto institucional) e procura automaticamente a linha real de cabeçalho. Campos principais:
 - **logradouro** (obrigatório)
 - **bairro** (obrigatório)
 - **zona** (opcional)

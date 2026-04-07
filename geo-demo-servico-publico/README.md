@@ -132,3 +132,5 @@ docker compose exec geo-demo-api npm run import:logradouros -- "/tmp/Logradouros
 docker compose build --no-cache geo-demo-api email-worker
 docker compose up -d --force-recreate geo-demo-api email-worker
 ```
+
+> Se ocorrer erro de mapeamento com primeira linha de título da planilha, atualize/rebuild para versão com detecção automática de linha de cabeçalho (`findHeaderRowIndex`).

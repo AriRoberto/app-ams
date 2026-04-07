@@ -6,7 +6,7 @@ export const COLUMN_ALIASES = {
   cep: ['cep', 'codigo_cep', 'código_cep', 'codigo cep']
 };
 
-function normalizeHeader(value) {
+export function normalizeHeader(value) {
   return String(value || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -27,4 +27,21 @@ export function detectColumnMapping(headers = []) {
   }
 
   return mapping;
+}
+
+export function findHeaderRowIndex(sheetRows = [], maxScanRows = 25) {
+  const scanLimit = Math.min(maxScanRows, sheetRows.length);
+
+  for (let index = 0; index < scanLimit; index += 1) {
+    const row = sheetRows[index] || [];
+    const headers = row.map((cell) => String(cell || '').trim()).filter(Boolean);
+    if (!headers.length) continue;
+
+    const mapping = detectColumnMapping(headers);
+    if (mapping.logradouro && mapping.bairro) {
+      return index;
+    }
+  }
+
+  return -1;
 }

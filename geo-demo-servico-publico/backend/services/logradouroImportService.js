@@ -3,7 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import XLSX from 'xlsx';
 import { getClient, query } from './db.js';
-import { detectColumnMapping } from '../utils/logradouroImportMapping.js';
+import { detectColumnMapping, findHeaderRowIndex } from '../utils/logradouroImportMapping.js';
 
 function sanitizeText(value, max = 180) {
   return String(value || '').trim().replace(/\s+/g, ' ').slice(0, max);
@@ -63,10 +63,21 @@ export async function importLogradourosFromXls({ filePath, dryRun = false }) {
   }
 
   const worksheet = workbook.Sheets[firstSheetName];
-  const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+  const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
-  if (!rows.length) {
+  if (!rawRows.length) {
     throw new Error('Planilha sem linhas de dados.');
+  }
+
+  const headerRowIndex = findHeaderRowIndex(rawRows);
+  if (headerRowIndex < 0) {
+    const preview = (rawRows[0] || []).map((item) => String(item || '')).join(', ');
+    throw new Error(`Mapeamento inválido. Cabeçalho com colunas de logradouro/bairro não encontrado. Primeira linha lida: ${preview}`);
+  }
+
+  const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '', range: headerRowIndex });
+  if (!rows.length) {
+    throw new Error('Planilha sem linhas de dados após cabeçalho.');
   }
 
   const headers = Object.keys(rows[0]);
@@ -80,6 +91,7 @@ export async function importLogradourosFromXls({ filePath, dryRun = false }) {
     filePath: absolutePath,
     sheetName: firstSheetName,
     mapping,
+    headerRowIndex,
     totalRows: rows.length,
     imported: 0,
     skippedDuplicates: 0,
@@ -94,7 +106,7 @@ export async function importLogradourosFromXls({ filePath, dryRun = false }) {
     await client.query('BEGIN');
 
     for (let index = 0; index < rows.length; index += 1) {
-      const rowNumber = index + 2;
+      const rowNumber = headerRowIndex + index + 2;
       const savepoint = `sp_logradouro_${index}`;
       await client.query(`SAVEPOINT ${savepoint}`);
 
