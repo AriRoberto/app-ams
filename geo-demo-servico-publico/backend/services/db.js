@@ -48,6 +48,10 @@ export async function query(text, values = []) {
   return pool.query(text, values);
 }
 
+export function getClient() {
+  return pool.connect();
+}
+
 export async function closeDatabase() {
   await pool.end();
 }

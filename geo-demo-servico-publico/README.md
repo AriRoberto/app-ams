@@ -25,6 +25,8 @@ Demo full stack de utilidade pública para registro de ocorrências urbanas com 
 - `PATCH /api/admin/tickets/:id/status` (admin/ouvidoria)
 - `POST /api/admin/demo-data/seed` (admin/ouvidoria)
 - `DELETE /api/admin/demo-data` (admin/ouvidoria)
+- `POST /api/admin/logradouros/import` (admin)
+- `GET /api/admin/logradouros` (admin/ouvidoria)
 
 ## Estrutura
 ```bash
@@ -113,3 +115,8 @@ curl http://localhost:3340/api/geo/sao-vicente-de-minas
 - Vila Nova
 
 Registros antigos sem valor continuam exibidos como `Não informado`.
+
+## Importação segura de logradouros
+- Script sob demanda: `npm run import:logradouros -- "../Logradouros_Zonas Valendo.xls"`
+- Endpoint admin isolado: `POST /api/admin/logradouros/import`
+- Relatório com total importado, duplicatas e falhas por linha

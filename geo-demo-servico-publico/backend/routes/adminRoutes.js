@@ -7,6 +7,7 @@ import {
   dashboardTicketsController,
   seedDemoDataController
 } from '../controllers/dashboardController.js';
+import { importLogradourosController, listLogradourosController } from '../controllers/logradouroController.js';
 import { authenticate } from '../middlewares/authenticate.js';
 import { authorize } from '../middlewares/authorize.js';
 
@@ -18,5 +19,7 @@ router.get('/dashboard/tickets', authenticate, authorize('admin', 'ouvidoria'), 
 router.patch('/tickets/:id/status', authenticate, authorize('admin', 'ouvidoria'), adminUpdateTicketStatusController);
 router.post('/demo-data/seed', authenticate, authorize('admin', 'ouvidoria'), seedDemoDataController);
 router.delete('/demo-data', authenticate, authorize('admin', 'ouvidoria'), clearDemoDataController);
+router.post('/logradouros/import', authenticate, authorize('admin'), importLogradourosController);
+router.get('/logradouros', authenticate, authorize('admin', 'ouvidoria'), listLogradourosController);
 
 export default router;

@@ -34,6 +34,20 @@ CREATE TABLE IF NOT EXISTS occurrences (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+
+CREATE TABLE IF NOT EXISTS logradouros (
+  id UUID PRIMARY KEY,
+  logradouro TEXT NOT NULL,
+  bairro TEXT NOT NULL,
+  zona TEXT,
+  tipo TEXT,
+  cep TEXT,
+  source_file TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (logradouro, bairro, zona)
+);
+
 CREATE TABLE IF NOT EXISTS refresh_tokens (
   id UUID PRIMARY KEY,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -93,6 +107,8 @@ CREATE INDEX IF NOT EXISTS idx_occurrences_status ON occurrences (status);
 CREATE INDEX IF NOT EXISTS idx_occurrences_bairro ON occurrences (bairro);
 CREATE INDEX IF NOT EXISTS idx_occurrences_sla_deadline ON occurrences (sla_deadline);
 CREATE INDEX IF NOT EXISTS idx_occurrences_is_demo ON occurrences (is_demo);
+CREATE INDEX IF NOT EXISTS idx_logradouros_bairro ON logradouros (bairro);
+CREATE INDEX IF NOT EXISTS idx_logradouros_logradouro ON logradouros (logradouro);
 CREATE INDEX IF NOT EXISTS idx_occurrences_email_status ON occurrences (email_status);
 CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens (user_id);
 CREATE INDEX IF NOT EXISTS idx_audit_manifestacao ON audit_logs (manifestacao_id);
