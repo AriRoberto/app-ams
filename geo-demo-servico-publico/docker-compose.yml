@@ -65,7 +65,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: geo-demo-email-worker
-    command: ["node", "backend/workers/emailWorker.js"]
+    command: ["node", "workers/emailWorker.js"]
     environment:
       DB_HOST: db
       DB_PORT: 5432

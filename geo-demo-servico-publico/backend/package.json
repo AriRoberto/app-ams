@@ -8,7 +8,7 @@
     "start": "node server.js",
     "worker:email": "node workers/emailWorker.js",
     "test": "node --test",
-    "import:logradouros": "node scripts/importLogradouros.js || node backend/scripts/importLogradouros.js"
+    "import:logradouros": "node scripts/importLogradouros.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -71,10 +71,27 @@ docker compose exec geo-demo-api npm run import:logradouros -- "/tmp/Logradouros
 
 ### 4) Validar resultado no backend
 ```bash
-docker compose exec geo-demo-api sh -lc 'node -e "import(\'./backend/services/db.js\').then(async ({query,closeDatabase})=>{const r=await query(\'SELECT COUNT(*)::int AS total FROM logradouros\'); console.log(r.rows[0]); await closeDatabase(); process.exit(0);})"'
+docker compose exec geo-demo-api sh -lc 'node -e "import(\'./services/db.js\').then(async ({query,closeDatabase})=>{const r=await query(\'SELECT COUNT(*)::int AS total FROM logradouros\'); console.log(r.rows[0]); await closeDatabase(); process.exit(0);})"'
 ```
 
 ### 5) Verificar via API
 ```bash
 curl -H "Authorization: Bearer <TOKEN_ADMIN>" http://localhost:3340/api/admin/logradouros
+```
+
+
+## Troubleshooting (erro MODULE_NOT_FOUND /app/scripts/importLogradouros.js)
+Esse erro indica imagem/container antigo com `WORKDIR` antigo (`/app`).
+
+1. Rebuild da imagem da API e worker:
+```bash
+docker compose build --no-cache geo-demo-api email-worker
+```
+2. Recriar containers:
+```bash
+docker compose up -d --force-recreate geo-demo-api email-worker
+```
+3. Testar novamente importação:
+```bash
+docker compose exec geo-demo-api npm run import:logradouros -- "/tmp/Logradouros_Zonas Valendo.xls"
 ```

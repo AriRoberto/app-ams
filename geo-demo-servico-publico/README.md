@@ -126,3 +126,9 @@ Registros antigos sem valor continuam exibidos como `Não informado`.
 docker cp "Logradouros_Zonas Valendo.xls" geo-demo-api:/tmp/Logradouros_Zonas\ Valendo.xls
 docker compose exec geo-demo-api npm run import:logradouros -- "/tmp/Logradouros_Zonas Valendo.xls"
 ```
+
+> Se aparecer `MODULE_NOT_FOUND /app/scripts/importLogradouros.js`, reconstrua a imagem:
+```bash
+docker compose build --no-cache geo-demo-api email-worker
+docker compose up -d --force-recreate geo-demo-api email-worker
+```
