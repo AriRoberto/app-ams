@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { detectColumnMapping, findHeaderRowIndex } from '../utils/logradouroImportMapping.js';
-import { inferMappingFromDataRows, parseDelimitedText } from '../services/logradouroImportService.js';
+import { findDefaultLogradouroFilePath, inferMappingFromDataRows, inspectLogradouroFileStructure, parseDelimitedText } from '../services/logradouroImportService.js';
 
 test('detectColumnMapping identifica colunas equivalentes da planilha', () => {
   const headers = ['Nome Logradouro', 'Bairro', 'Zona', 'Tipo Logradouro', 'CEP'];
@@ -53,4 +56,34 @@ test('parseDelimitedText detecta delimitador ; e preserva valores entre aspas', 
 
   assert.deepEqual(rows[0], ['LOGRADOURO', 'BAIRRO', 'ZONA']);
   assert.deepEqual(rows[1], ['Rua A', 'Centro', 'Urbana']);
+});
+
+test('inspectLogradouroFileStructure detecta delimitador e mapeamento em CSV', () => {
+  const tempPath = path.join(os.tmpdir(), `logradouros-${Date.now()}.csv`);
+  fs.writeFileSync(tempPath, 'LOGRADOURO;BAIRRO;ZONA\nRua A;Centro;Urbana\n');
+
+  const inspection = inspectLogradouroFileStructure({ filePath: tempPath });
+
+  assert.equal(inspection.sourceType, 'csv');
+  assert.equal(inspection.delimiter, ';');
+  assert.equal(inspection.mapping.logradouro, 'LOGRADOURO');
+  assert.equal(inspection.mapping.bairro, 'BAIRRO');
+
+  fs.unlinkSync(tempPath);
+});
+
+test('findDefaultLogradouroFilePath prioriza CSV na raiz quando existir', () => {
+  const baseDir = fs.mkdtempSync(path.join(os.tmpdir(), 'logradouro-default-'));
+  const csvPath = path.join(baseDir, 'Logradouross_Zonas.csv');
+  const xlsPath = path.join(baseDir, 'Logradouros_Zonas Valendo.xls');
+
+  fs.writeFileSync(csvPath, 'LOGRADOURO;BAIRRO\nRua A;Centro\n');
+  fs.writeFileSync(xlsPath, 'placeholder');
+
+  const detected = findDefaultLogradouroFilePath(baseDir);
+  assert.equal(detected, csvPath);
+
+  fs.unlinkSync(csvPath);
+  fs.unlinkSync(xlsPath);
+  fs.rmdirSync(baseDir);
 });

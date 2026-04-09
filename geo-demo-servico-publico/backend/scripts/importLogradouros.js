@@ -1,18 +1,29 @@
 import { initDatabase, closeDatabase } from '../services/db.js';
-import { importLogradourosFromFile } from '../services/logradouroImportService.js';
+import { findDefaultLogradouroFilePath, importLogradourosFromFile, inspectLogradouroFileStructure } from '../services/logradouroImportService.js';
 
-const filePath = process.argv[2] || 'Logradouros_Zonas Valendo.xls';
-const dryRun = process.argv.includes('--dry-run');
+const args = process.argv.slice(2);
+const dryRun = args.includes('--dry-run');
+const inspectOnly = args.includes('--inspect');
+const fileArg = args.find((arg) => !arg.startsWith('--'));
+const filePath = fileArg || findDefaultLogradouroFilePath() || 'Logradouros_Zonas Valendo.xls';
 
 try {
-  await initDatabase();
-  const report = await importLogradourosFromFile({ filePath, dryRun });
-  // eslint-disable-next-line no-console
-  console.log(JSON.stringify(report, null, 2));
+  if (inspectOnly) {
+    const report = inspectLogradouroFileStructure({ filePath });
+    // eslint-disable-next-line no-console
+    console.log(JSON.stringify(report, null, 2));
+  } else {
+    await initDatabase();
+    const report = await importLogradourosFromFile({ filePath, dryRun });
+    // eslint-disable-next-line no-console
+    console.log(JSON.stringify(report, null, 2));
+  }
 } catch (error) {
   // eslint-disable-next-line no-console
   console.error('[import-logradouros] erro:', error.message);
   process.exitCode = 1;
 } finally {
-  await closeDatabase();
+  if (!inspectOnly) {
+    await closeDatabase();
+  }
 }

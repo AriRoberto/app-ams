@@ -20,17 +20,59 @@ function normalizeRow(row, mapping) {
 }
 
 function resolveFilePath(filePath) {
-  if (!filePath) {
-    throw new Error('filePath é obrigatório para importação de logradouros.');
-  }
+  const inputPath = filePath || findDefaultLogradouroFilePath();
+  if (!inputPath) throw new Error('filePath é obrigatório para importação de logradouros.');
 
-  const direct = path.resolve(process.cwd(), filePath);
+  const direct = path.resolve(process.cwd(), inputPath);
   if (fs.existsSync(direct)) return direct;
 
-  const backendRelative = path.resolve(process.cwd(), 'geo-demo-servico-publico/backend', filePath);
+  const backendRelative = path.resolve(process.cwd(), 'geo-demo-servico-publico/backend', inputPath);
   if (fs.existsSync(backendRelative)) return backendRelative;
 
-  throw new Error(`Arquivo não encontrado: ${filePath}`);
+  const geoRootRelative = path.resolve(process.cwd(), 'geo-demo-servico-publico', inputPath);
+  if (fs.existsSync(geoRootRelative)) return geoRootRelative;
+
+  const discovered = findDefaultLogradouroFilePath(path.resolve(process.cwd(), 'geo-demo-servico-publico'));
+  if (discovered && fs.existsSync(discovered)) return discovered;
+
+  throw new Error(`Arquivo não encontrado: ${inputPath}`);
+}
+
+function listMatchingFiles(directoryPath) {
+  if (!directoryPath || !fs.existsSync(directoryPath)) return [];
+  const entries = fs.readdirSync(directoryPath, { withFileTypes: true });
+  return entries
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name)
+    .filter((name) => /logradouro.*\.(xls|xlsx|csv|txt)$/i.test(name))
+    .map((name) => path.join(directoryPath, name));
+}
+
+export function findDefaultLogradouroFilePath(baseDir = process.cwd()) {
+  const roots = [
+    baseDir,
+    path.resolve(baseDir, 'geo-demo-servico-publico'),
+    path.resolve(baseDir, '..'),
+    path.resolve(baseDir, '..', 'geo-demo-servico-publico')
+  ];
+
+  const candidates = [];
+  for (const root of roots) {
+    candidates.push(...listMatchingFiles(root));
+    candidates.push(...listMatchingFiles(path.join(root, 'Logradouros_Zonas Valendo')));
+  }
+
+  const unique = [...new Set(candidates)];
+  if (!unique.length) return null;
+
+  const rank = (fileName) => {
+    if (/\.csv$/i.test(fileName)) return 0;
+    if (/\.xlsx$/i.test(fileName)) return 1;
+    if (/\.xls$/i.test(fileName)) return 2;
+    return 3;
+  };
+
+  return unique.sort((a, b) => rank(path.basename(a)) - rank(path.basename(b)))[0];
 }
 
 function rowHasUsefulData(row = []) {
@@ -154,27 +196,53 @@ function detectDelimiter(sampleLine = '') {
 }
 
 export function parseDelimitedText(content = '') {
+  return parseDelimitedTextDetailed(content).rows;
+}
+
+function parseDelimitedTextDetailed(content = '') {
   const normalized = content.replace(/^\uFEFF/, '');
   const lines = normalized
     .split(/\r?\n/)
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
 
-  if (!lines.length) return [];
+  if (!lines.length) return { rows: [], delimiter: ';' };
 
   const delimiter = detectDelimiter(lines[0]);
-  return lines.map((line) => splitDelimitedLine(line, delimiter));
+  return {
+    rows: lines.map((line) => splitDelimitedLine(line, delimiter)),
+    delimiter
+  };
+}
+
+function readTextWithEncodingFallback(absolutePath) {
+  const raw = fs.readFileSync(absolutePath);
+  const utf8Text = raw.toString('utf8');
+  const utf8ReplacementCount = (utf8Text.match(/�/g) || []).length;
+
+  if (utf8ReplacementCount > 0) {
+    const latin1Text = raw.toString('latin1');
+    const latin1ReplacementCount = (latin1Text.match(/�/g) || []).length;
+    if (latin1ReplacementCount <= utf8ReplacementCount) {
+      return { content: latin1Text, encoding: 'latin1' };
+    }
+  }
+
+  return { content: utf8Text, encoding: 'utf8' };
 }
 
 function loadRawRowsFromFile(absolutePath) {
   const extension = path.extname(absolutePath).toLowerCase();
 
   if (extension === '.csv' || extension === '.txt') {
-    const content = fs.readFileSync(absolutePath, 'utf8');
+    const { content, encoding } = readTextWithEncodingFallback(absolutePath);
+    const parsed = parseDelimitedTextDetailed(content);
     return {
       sheetName: path.basename(absolutePath),
-      rawRows: parseDelimitedText(content),
-      sourceType: extension.slice(1)
+      rawRows: parsed.rows,
+      sourceType: extension.slice(1),
+      delimiter: parsed.delimiter,
+      encoding
     };
   }
 
@@ -189,7 +257,9 @@ function loadRawRowsFromFile(absolutePath) {
   return {
     sheetName: firstSheetName,
     rawRows: XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }),
-    sourceType: 'spreadsheet'
+    sourceType: 'spreadsheet',
+    delimiter: null,
+    encoding: null
   };
 }
 
@@ -234,7 +304,7 @@ export async function listLogradouros({ bairro } = {}) {
 
 export async function importLogradourosFromFile({ filePath, dryRun = false }) {
   const absolutePath = resolveFilePath(filePath);
-  const { sheetName, rawRows, sourceType } = loadRawRowsFromFile(absolutePath);
+  const { sheetName, rawRows, sourceType, delimiter, encoding } = loadRawRowsFromFile(absolutePath);
 
   if (!rawRows.length) {
     throw new Error('Arquivo sem linhas de dados.');
@@ -267,6 +337,8 @@ export async function importLogradourosFromFile({ filePath, dryRun = false }) {
   const report = {
     filePath: absolutePath,
     sourceType,
+    delimiter,
+    encoding,
     sheetName,
     mapping,
     headerRowIndex,
@@ -354,4 +426,26 @@ export async function importLogradourosFromFile({ filePath, dryRun = false }) {
 
 export async function importLogradourosFromXls(params) {
   return importLogradourosFromFile(params);
+}
+
+export function inspectLogradouroFileStructure({ filePath }) {
+  const absolutePath = resolveFilePath(filePath);
+  const { sheetName, rawRows, sourceType, delimiter, encoding } = loadRawRowsFromFile(absolutePath);
+  const headerRowIndex = findHeaderRowIndex(rawRows);
+  const previewRows = rawRows.slice(0, 6);
+  const header = headerRowIndex >= 0 ? rawRows[headerRowIndex] : [];
+  const mapping = header.length ? detectColumnMapping(header.map((item) => sanitizeText(item, 120))) : inferMappingFromDataRows(rawRows.slice(1));
+
+  return {
+    filePath: absolutePath,
+    sourceType,
+    sheetName,
+    delimiter,
+    encoding,
+    totalRawRows: rawRows.length,
+    headerRowIndex,
+    header,
+    mapping,
+    previewRows
+  };
 }

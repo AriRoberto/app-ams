@@ -28,6 +28,13 @@ Simulação sem gravar dados:
 npm run import:logradouros -- "../Logradouros_Zonas Valendo.xls" --dry-run
 ```
 
+Analisar a estrutura do arquivo (sem conexão com banco):
+```bash
+npm run import:logradouros -- "../Logradouros_Zonas Valendo.xls" --inspect
+```
+
+> Se você não informar caminho, o script tenta localizar automaticamente arquivo de logradouro na raiz do projeto (prioriza `.csv`).
+
 ## Execução via API (isolada)
 Endpoint (admin):
 - `POST /api/admin/logradouros/import`
@@ -70,6 +77,11 @@ npm run import:logradouros -- "../logradouros.csv"
 Simulação (sem gravar):
 ```bash
 npm run import:logradouros -- "../logradouros.csv" --dry-run
+```
+
+Inspeção da estrutura CSV antes de importar:
+```bash
+npm run import:logradouros -- "../logradouros.csv" --inspect
 ```
 
 ### Opção B — Carga direta no PostgreSQL (COPY)
