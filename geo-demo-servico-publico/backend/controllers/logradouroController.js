@@ -1,11 +1,11 @@
-import { importLogradourosFromXls, listLogradouros } from '../services/logradouroImportService.js';
+import { importLogradourosFromFile, listLogradouros } from '../services/logradouroImportService.js';
 
 export async function importLogradourosController(req, res, next) {
   try {
     const filePath = String(req.body?.filePath || 'Logradouros_Zonas Valendo.xls').trim();
     const dryRun = Boolean(req.body?.dryRun);
 
-    const report = await importLogradourosFromXls({ filePath, dryRun });
+    const report = await importLogradourosFromFile({ filePath, dryRun });
 
     return res.status(201).json({
       success: true,

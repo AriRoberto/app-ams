@@ -110,6 +110,108 @@ function buildSyntheticRows(rawRows = [], startAt = 1) {
   });
 }
 
+function splitDelimitedLine(line, delimiter) {
+  const columns = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let idx = 0; idx < line.length; idx += 1) {
+    const char = line[idx];
+    const nextChar = line[idx + 1];
+
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        idx += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+      continue;
+    }
+
+    if (!inQuotes && char === delimiter) {
+      columns.push(current.trim());
+      current = '';
+      continue;
+    }
+
+    current += char;
+  }
+
+  columns.push(current.trim());
+  return columns;
+}
+
+function detectDelimiter(sampleLine = '') {
+  const delimiters = [
+    { value: ';', score: (sampleLine.match(/;/g) || []).length },
+    { value: ',', score: (sampleLine.match(/,/g) || []).length },
+    { value: '\t', score: (sampleLine.match(/\t/g) || []).length }
+  ];
+
+  const best = delimiters.sort((a, b) => b.score - a.score)[0];
+  return best?.score > 0 ? best.value : ';';
+}
+
+export function parseDelimitedText(content = '') {
+  const normalized = content.replace(/^\uFEFF/, '');
+  const lines = normalized
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  if (!lines.length) return [];
+
+  const delimiter = detectDelimiter(lines[0]);
+  return lines.map((line) => splitDelimitedLine(line, delimiter));
+}
+
+function loadRawRowsFromFile(absolutePath) {
+  const extension = path.extname(absolutePath).toLowerCase();
+
+  if (extension === '.csv' || extension === '.txt') {
+    const content = fs.readFileSync(absolutePath, 'utf8');
+    return {
+      sheetName: path.basename(absolutePath),
+      rawRows: parseDelimitedText(content),
+      sourceType: extension.slice(1)
+    };
+  }
+
+  const workbook = XLSX.readFile(absolutePath, { cellDates: true });
+  const firstSheetName = workbook.SheetNames[0];
+
+  if (!firstSheetName) {
+    throw new Error('Planilha sem abas para importação.');
+  }
+
+  const worksheet = workbook.Sheets[firstSheetName];
+  return {
+    sheetName: firstSheetName,
+    rawRows: XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }),
+    sourceType: 'spreadsheet'
+  };
+}
+
+function buildRowsFromHeader(rawRows, headerRowIndex) {
+  const headerCells = rawRows[headerRowIndex] || [];
+  const headers = headerCells.map((value, idx) => sanitizeText(value, 120) || `COL_${idx}`);
+
+  const dataRows = rawRows
+    .slice(headerRowIndex + 1)
+    .filter((row) => rowHasUsefulData(row));
+
+  const rows = dataRows.map((row) => {
+    const obj = {};
+    headers.forEach((header, idx) => {
+      obj[header] = row[idx];
+    });
+    return obj;
+  });
+
+  return { headers, rows };
+}
+
 export async function listLogradouros({ bairro } = {}) {
   if (bairro) {
     const result = await query(
@@ -130,20 +232,12 @@ export async function listLogradouros({ bairro } = {}) {
   return result.rows;
 }
 
-export async function importLogradourosFromXls({ filePath, dryRun = false }) {
+export async function importLogradourosFromFile({ filePath, dryRun = false }) {
   const absolutePath = resolveFilePath(filePath);
-  const workbook = XLSX.readFile(absolutePath, { cellDates: true });
-  const firstSheetName = workbook.SheetNames[0];
-
-  if (!firstSheetName) {
-    throw new Error('Planilha sem abas para importação.');
-  }
-
-  const worksheet = workbook.Sheets[firstSheetName];
-  const rawRows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+  const { sheetName, rawRows, sourceType } = loadRawRowsFromFile(absolutePath);
 
   if (!rawRows.length) {
-    throw new Error('Planilha sem linhas de dados.');
+    throw new Error('Arquivo sem linhas de dados.');
   }
 
   let rows;
@@ -152,12 +246,8 @@ export async function importLogradourosFromXls({ filePath, dryRun = false }) {
   let inferredMapping = false;
 
   if (headerRowIndex >= 0) {
-    rows = XLSX.utils.sheet_to_json(worksheet, { defval: '', range: headerRowIndex });
-    if (!rows.length) {
-      throw new Error('Planilha sem linhas de dados após cabeçalho.');
-    }
-
-    const headers = Object.keys(rows[0]);
+    const { headers, rows: mappedRows } = buildRowsFromHeader(rawRows, headerRowIndex);
+    rows = mappedRows;
     mapping = detectColumnMapping(headers);
   } else {
     rows = buildSyntheticRows(rawRows, 1);
@@ -166,7 +256,7 @@ export async function importLogradourosFromXls({ filePath, dryRun = false }) {
   }
 
   if (!rows.length) {
-    throw new Error('Planilha sem linhas úteis para importação.');
+    throw new Error('Arquivo sem linhas úteis para importação.');
   }
 
   if (!mapping?.logradouro || !mapping?.bairro) {
@@ -176,7 +266,8 @@ export async function importLogradourosFromXls({ filePath, dryRun = false }) {
 
   const report = {
     filePath: absolutePath,
-    sheetName: firstSheetName,
+    sourceType,
+    sheetName,
     mapping,
     headerRowIndex,
     inferredMapping,
@@ -259,4 +350,8 @@ export async function importLogradourosFromXls({ filePath, dryRun = false }) {
   } finally {
     client.release();
   }
+}
+
+export async function importLogradourosFromXls(params) {
+  return importLogradourosFromFile(params);
 }

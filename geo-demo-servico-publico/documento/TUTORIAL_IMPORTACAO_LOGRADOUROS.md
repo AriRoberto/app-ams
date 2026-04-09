@@ -52,6 +52,36 @@ Consulta dos importados:
 
 
 
+
+## Alternativa robusta quando o XLS falhar
+Se o arquivo `.xls` vier com formatação antiga/corrompida, converta para **CSV UTF-8 (separado por ponto e vírgula)** e importe o CSV no mesmo script.
+
+### Opção A — Converter no LibreOffice/Excel
+1. Abra o arquivo `.xls`.
+2. Salve como: `CSV UTF-8 (delimitado por vírgula)` ou `CSV (separado por ;)` (preferência por `;`).
+3. Garanta que a primeira linha tenha cabeçalhos como `LOGRADOURO`, `BAIRRO`, `ZONA` (ou aliases).
+
+Importar CSV:
+```bash
+cd geo-demo-servico-publico/backend
+npm run import:logradouros -- "../logradouros.csv"
+```
+
+Simulação (sem gravar):
+```bash
+npm run import:logradouros -- "../logradouros.csv" --dry-run
+```
+
+### Opção B — Carga direta no PostgreSQL (COPY)
+Quando quiser máxima performance e o CSV já estiver limpo:
+```sql
+COPY logradouros (logradouro, bairro, zona, tipo, cep)
+FROM '/tmp/logradouros.csv'
+WITH (FORMAT csv, HEADER true, DELIMITER ';', ENCODING 'UTF8');
+```
+
+> Dica: se usar `COPY`, normalize espaços e remova duplicatas antes para evitar conflitos na constraint única `(logradouro, bairro, zona)`.
+
 ## Execução no Docker (recomendado para imagem publicada)
 
 ### 1) Confirmar serviço da API
