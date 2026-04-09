@@ -12,7 +12,7 @@ A importação detecta e mapeia cabeçalhos por aliases. Ela também ignora linh
 
 ## Mapeamento de colunas (aliases aceitos)
 - `logradouro`: `logradouro`, `nome_logradouro`, `rua`, `endereco`
-- `bairro`: `bairro`, `bairro_nome`
+- `bairro`: `bairro`, `bairro_nome`, `bairro/zona`
 - `zona`: `zona`, `setor`, `regiao`
 - `tipo`: `tipo`, `tipo_logradouro`
 - `cep`: `cep`, `codigo_cep`
@@ -95,3 +95,11 @@ docker compose up -d --force-recreate geo-demo-api email-worker
 ```bash
 docker compose exec geo-demo-api npm run import:logradouros -- "/tmp/Logradouros_Zonas Valendo.xls"
 ```
+
+
+### Se ainda falhar mapeamento
+Execute em modo simulação para obter relatório sem gravar no banco:
+```bash
+docker compose exec geo-demo-api npm run import:logradouros -- "/tmp/Logradouros_Zonas Valendo.xls" --dry-run
+```
+A mensagem de erro agora traz prévia das primeiras linhas lidas para facilitar ajuste de aliases.

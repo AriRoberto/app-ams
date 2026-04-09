@@ -33,6 +33,83 @@ function resolveFilePath(filePath) {
   throw new Error(`Arquivo não encontrado: ${filePath}`);
 }
 
+function rowHasUsefulData(row = []) {
+  return row.filter((cell) => sanitizeText(cell, 300).length > 0).length >= 2;
+}
+
+function streetScore(value) {
+  return /(rua|avenida|av\.?|travessa|pra[çc]a|alameda|rodovia|estrada)/i.test(value) ? 1 : 0;
+}
+
+function zoneScore(value) {
+  return /(urbana|rural|zona|distrito|sede)/i.test(value) ? 1 : 0;
+}
+
+export function inferMappingFromDataRows(dataRows = []) {
+  if (!dataRows.length) return null;
+
+  const maxCols = Math.max(...dataRows.map((row) => row.length), 0);
+  const stats = Array.from({ length: maxCols }, (_, idx) => ({
+    idx,
+    nonEmpty: 0,
+    streetHits: 0,
+    zoneHits: 0,
+    values: []
+  }));
+
+  for (const row of dataRows) {
+    for (let idx = 0; idx < maxCols; idx += 1) {
+      const value = sanitizeText(row[idx], 220);
+      if (!value) continue;
+      const stat = stats[idx];
+      stat.nonEmpty += 1;
+      stat.streetHits += streetScore(value);
+      stat.zoneHits += zoneScore(value);
+      stat.values.push(value.toLowerCase());
+    }
+  }
+
+  const populated = stats.filter((item) => item.nonEmpty > 0);
+  if (populated.length < 2) return null;
+
+  const logradouroCol = [...populated].sort((a, b) => {
+    if (b.streetHits !== a.streetHits) return b.streetHits - a.streetHits;
+    return b.nonEmpty - a.nonEmpty;
+  })[0];
+
+  const remaining = populated.filter((item) => item.idx !== logradouroCol.idx);
+
+  const bairroCol = [...remaining].sort((a, b) => {
+    const uniqA = new Set(a.values).size / a.values.length;
+    const uniqB = new Set(b.values).size / b.values.length;
+    if (uniqA !== uniqB) return uniqA - uniqB;
+    return b.nonEmpty - a.nonEmpty;
+  })[0];
+
+  const remainingAfterBairro = remaining.filter((item) => item.idx !== bairroCol.idx);
+  const zonaCol = remainingAfterBairro.sort((a, b) => {
+    if (b.zoneHits !== a.zoneHits) return b.zoneHits - a.zoneHits;
+    return b.nonEmpty - a.nonEmpty;
+  })[0];
+
+  return {
+    logradouro: `COL_${logradouroCol.idx}`,
+    bairro: `COL_${bairroCol.idx}`,
+    zona: zonaCol ? `COL_${zonaCol.idx}` : undefined
+  };
+}
+
+function buildSyntheticRows(rawRows = [], startAt = 1) {
+  const usefulRows = rawRows.slice(startAt).filter((row) => rowHasUsefulData(row));
+  return usefulRows.map((row) => {
+    const obj = {};
+    row.forEach((value, idx) => {
+      obj[`COL_${idx}`] = value;
+    });
+    return obj;
+  });
+}
+
 export async function listLogradouros({ bairro } = {}) {
   if (bairro) {
     const result = await query(
@@ -69,22 +146,32 @@ export async function importLogradourosFromXls({ filePath, dryRun = false }) {
     throw new Error('Planilha sem linhas de dados.');
   }
 
-  const headerRowIndex = findHeaderRowIndex(rawRows);
-  if (headerRowIndex < 0) {
-    const preview = (rawRows[0] || []).map((item) => String(item || '')).join(', ');
-    throw new Error(`Mapeamento inválido. Cabeçalho com colunas de logradouro/bairro não encontrado. Primeira linha lida: ${preview}`);
+  let rows;
+  let mapping;
+  let headerRowIndex = findHeaderRowIndex(rawRows);
+  let inferredMapping = false;
+
+  if (headerRowIndex >= 0) {
+    rows = XLSX.utils.sheet_to_json(worksheet, { defval: '', range: headerRowIndex });
+    if (!rows.length) {
+      throw new Error('Planilha sem linhas de dados após cabeçalho.');
+    }
+
+    const headers = Object.keys(rows[0]);
+    mapping = detectColumnMapping(headers);
+  } else {
+    rows = buildSyntheticRows(rawRows, 1);
+    mapping = inferMappingFromDataRows(rawRows.slice(1));
+    inferredMapping = true;
   }
 
-  const rows = XLSX.utils.sheet_to_json(worksheet, { defval: '', range: headerRowIndex });
   if (!rows.length) {
-    throw new Error('Planilha sem linhas de dados após cabeçalho.');
+    throw new Error('Planilha sem linhas úteis para importação.');
   }
 
-  const headers = Object.keys(rows[0]);
-  const mapping = detectColumnMapping(headers);
-
-  if (!mapping.logradouro || !mapping.bairro) {
-    throw new Error(`Mapeamento inválido. Necessário mapear logradouro e bairro. Headers recebidos: ${headers.join(', ')}`);
+  if (!mapping?.logradouro || !mapping?.bairro) {
+    const previewRows = rawRows.slice(0, 8).map((row, idx) => ({ linha: idx + 1, valores: row }));
+    throw new Error(`Mapeamento inválido. Cabeçalho com colunas de logradouro/bairro não encontrado. Prévia das primeiras linhas: ${JSON.stringify(previewRows)}`);
   }
 
   const report = {
@@ -92,6 +179,7 @@ export async function importLogradourosFromXls({ filePath, dryRun = false }) {
     sheetName: firstSheetName,
     mapping,
     headerRowIndex,
+    inferredMapping,
     totalRows: rows.length,
     imported: 0,
     skippedDuplicates: 0,
@@ -106,7 +194,7 @@ export async function importLogradourosFromXls({ filePath, dryRun = false }) {
     await client.query('BEGIN');
 
     for (let index = 0; index < rows.length; index += 1) {
-      const rowNumber = headerRowIndex + index + 2;
+      const rowNumber = headerRowIndex >= 0 ? headerRowIndex + index + 2 : index + 2;
       const savepoint = `sp_logradouro_${index}`;
       await client.query(`SAVEPOINT ${savepoint}`);
 

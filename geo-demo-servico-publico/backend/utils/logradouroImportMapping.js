@@ -1,6 +1,6 @@
 export const COLUMN_ALIASES = {
-  logradouro: ['logradouro', 'nome_logradouro', 'nome logradouro', 'rua', 'endereco', 'endereço', 'logradouro_nome'],
-  bairro: ['bairro', 'bairro_nome', 'nome_bairro'],
+  logradouro: ['logradouro', 'logradouros', 'nome_logradouro', 'nome logradouro', 'logradouro_publico', 'logradouro_publico_nominado', 'logradouros_publicos_nominados', 'rua', 'endereco', 'endereço', 'logradouro_nome'],
+  bairro: ['bairro', 'bairros', 'bairro_nome', 'nome_bairro', 'bairro_zona', 'bairro/zona'],
   zona: ['zona', 'setor', 'regiao', 'região'],
   tipo: ['tipo', 'tipo_logradouro', 'classificacao'],
   cep: ['cep', 'codigo_cep', 'código_cep', 'codigo cep']
@@ -29,7 +29,7 @@ export function detectColumnMapping(headers = []) {
   return mapping;
 }
 
-export function findHeaderRowIndex(sheetRows = [], maxScanRows = 25) {
+export function findHeaderRowIndex(sheetRows = [], maxScanRows = 120) {
   const scanLimit = Math.min(maxScanRows, sheetRows.length);
 
   for (let index = 0; index < scanLimit; index += 1) {

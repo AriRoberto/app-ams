@@ -23,3 +23,12 @@ test('findHeaderRowIndex ignora linha de título e encontra cabeçalho real', ()
   const index = findHeaderRowIndex(rows);
   assert.equal(index, 1);
 });
+
+
+test('detectColumnMapping suporta cabeçalho BAIRRO/ZONA e LOGRADOUROS', () => {
+  const headers = ['LOGRADOUROS', 'BAIRRO/ZONA', 'CEP'];
+  const mapping = detectColumnMapping(headers);
+
+  assert.equal(mapping.logradouro, 'LOGRADOUROS');
+  assert.equal(mapping.bairro, 'BAIRRO/ZONA');
+});
