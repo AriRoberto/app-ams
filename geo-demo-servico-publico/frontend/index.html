@@ -24,13 +24,24 @@
         <p id="geoStatus" class="status"></p>
       </section>
 
-      <section class="card city-card">
-        <h2>Dados da cidade</h2>
-        <div id="cityInfo" class="json-view">Clique no botão acima para carregar os dados geográficos.</div>
-      </section>
-
       <section class="card auth-card">
         <h2>Autenticação</h2>
+        <div class="segmented-control" role="tablist" aria-label="Modo de autenticação">
+          <button id="authLoginModeBtn" class="active" type="button">Entrar</button>
+          <button id="authSignupModeBtn" type="button">Cadastrar</button>
+        </div>
+
+        <div id="signupFields" class="signup-fields" hidden>
+          <div class="grid">
+            <label>Nome completo
+              <input id="signupName" autocomplete="name" placeholder="Nome do cidadão" />
+            </label>
+            <label>CPF
+              <input id="signupCpf" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" />
+            </label>
+          </div>
+        </div>
+
         <div class="grid">
           <label>E-mail
             <input id="authEmail" type="email" value="cidadao@demo.local" placeholder="seu-email@dominio" />
@@ -42,6 +53,7 @@
 
         <div class="auth-actions">
           <button id="loginBtn" class="primary-btn">Entrar</button>
+          <button id="signupBtn" class="primary-btn" type="button" hidden>Criar cadastro</button>
           <button id="quickAdminBtn" type="button">Entrar como Admin Demo</button>
           <button id="logoutBtn" type="button">Sair</button>
         </div>
@@ -69,6 +81,15 @@
                 <option value="MATO_ALTO">Mato alto</option>
                 <option value="ENTULHO">Entulho</option>
                 <option value="VAZAMENTO">Vazamento</option>
+                <option value="COLETA_LIXO">Coleta de lixo</option>
+                <option value="PODA_ARVORE">Poda de árvore</option>
+                <option value="SINALIZACAO_VIARIA">Sinalização viária</option>
+                <option value="CALCADA_DANIFICADA">Calçada danificada</option>
+                <option value="ANIMAL_SOLTO">Animal solto</option>
+                <option value="DRENAGEM_PLUVIAL">Drenagem pluvial</option>
+                <option value="ILUMINACAO_PUBLICA">Iluminação pública</option>
+                <option value="LIMPEZA_URBANA">Limpeza urbana</option>
+                <option value="AGUA_ESGOTO">Água e esgoto</option>
                 <option value="PROBLEMA_ESCOLA">Problema em escola</option>
                 <option value="PROBLEMA_POSTO_SAUDE">Problema em posto de saúde</option>
                 <option value="PROBLEMA_PRACA">Problema em praça</option>
@@ -117,24 +138,6 @@
               <textarea id="requirementText" rows="5" placeholder="O modelo oficial será anexado posteriormente. Use este campo para registrar o conteúdo inicial do requerimento."></textarea>
             </label>
           </fieldset>
-
-          <div class="grid readonly-grid">
-            <label>Latitude
-              <input id="latitude" readonly />
-            </label>
-            <label>Longitude
-              <input id="longitude" readonly />
-            </label>
-            <label>Cidade
-              <input id="cidade" readonly />
-            </label>
-            <label>UF
-              <input id="uf" readonly />
-            </label>
-            <label>Código IBGE
-              <input id="ibge_id" readonly />
-            </label>
-          </div>
 
           <button id="submitOccurrenceBtn" type="submit" class="primary-btn">Registrar ocorrência</button>
         </form>

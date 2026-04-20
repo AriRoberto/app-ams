@@ -1,4 +1,8 @@
 const API_BASE = '/api';
+const AUTH_MODE = {
+  login: 'login',
+  signup: 'signup'
+};
 
 const AUTH_KEYS = {
   accessToken: 'access_token',
@@ -8,7 +12,6 @@ const AUTH_KEYS = {
 
 const loadGeoBtn = document.getElementById('loadGeoBtn');
 const geoStatus = document.getElementById('geoStatus');
-const cityInfo = document.getElementById('cityInfo');
 const submitMessage = document.getElementById('submitMessage');
 const occurrenceJson = document.getElementById('occurrenceJson');
 const occurrenceDetailJson = document.getElementById('occurrenceDetailJson');
@@ -29,6 +32,12 @@ const authPassword = document.getElementById('authPassword');
 const authInfo = document.getElementById('authInfo');
 const authMessage = document.getElementById('authMessage');
 const loginBtn = document.getElementById('loginBtn');
+const signupBtn = document.getElementById('signupBtn');
+const authLoginModeBtn = document.getElementById('authLoginModeBtn');
+const authSignupModeBtn = document.getElementById('authSignupModeBtn');
+const signupFields = document.getElementById('signupFields');
+const signupName = document.getElementById('signupName');
+const signupCpf = document.getElementById('signupCpf');
 const quickAdminBtn = document.getElementById('quickAdminBtn');
 const logoutBtn = document.getElementById('logoutBtn');
 
@@ -36,6 +45,7 @@ let map;
 let marker;
 let rectangle;
 let cityGeo = null;
+let authMode = AUTH_MODE.login;
 let allowedBairros = [];
 let currentOccurrences = [];
 
@@ -116,14 +126,6 @@ function initMap() {
   }).addTo(map);
 }
 
-function updateFormGeoFields(geo) {
-  document.getElementById('latitude').value = geo.lat;
-  document.getElementById('longitude').value = geo.lon;
-  document.getElementById('cidade').value = geo.nome;
-  document.getElementById('uf').value = geo.uf;
-  document.getElementById('ibge_id').value = geo.ibge_id;
-}
-
 function updateMap(geo) {
   map.setView([geo.lat, geo.lon], 13);
 
@@ -142,6 +144,22 @@ function updateMap(geo) {
   }).addTo(map);
 
   map.fitBounds(rectangle.getBounds(), { padding: [20, 20] });
+}
+
+function updateAuthModeUI() {
+  const signup = authMode === AUTH_MODE.signup;
+  signupFields.hidden = !signup;
+  signupBtn.hidden = !signup;
+  loginBtn.hidden = signup;
+  quickAdminBtn.hidden = signup;
+  authLoginModeBtn.classList.toggle('active', !signup);
+  authSignupModeBtn.classList.toggle('active', signup);
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  updateAuthModeUI();
+  setStatus(authMessage, '', '');
 }
 
 function buildBairroOptions() {
@@ -280,8 +298,6 @@ async function loadGeoData() {
     const data = await requestJson(`${API_BASE}/geo/sao-vicente-de-minas`);
     cityGeo = data;
 
-    cityInfo.textContent = JSON.stringify(data, null, 2);
-    updateFormGeoFields(data);
     updateMap(data);
 
     const sourceText = data.source === 'api' ? 'APIs oficiais (IBGE + Nominatim)' : 'Fallback de contingência';
@@ -301,11 +317,11 @@ function extractFormPayload() {
     pontoReferencia: document.getElementById('pontoReferencia').value.trim(),
     destinatario: document.getElementById('destinatario').value,
     emailDestino: document.getElementById('emailDestino').value.trim(),
-    latitude: Number(document.getElementById('latitude').value),
-    longitude: Number(document.getElementById('longitude').value),
-    cidade: document.getElementById('cidade').value.trim(),
-    uf: document.getElementById('uf').value.trim(),
-    ibge_id: Number(document.getElementById('ibge_id').value),
+    latitude: Number(cityGeo.lat),
+    longitude: Number(cityGeo.lon),
+    cidade: cityGeo.nome,
+    uf: cityGeo.uf,
+    ibge_id: Number(cityGeo.ibge_id),
     requirementFormEnabled,
     requirementFormData: requirementFormEnabled
       ? {
@@ -314,6 +330,34 @@ function extractFormPayload() {
         }
       : null
   };
+}
+
+async function onSignup() {
+  try {
+    const nome = signupName.value.trim();
+    const cpf = signupCpf.value.trim();
+    const email = authEmail.value.trim().toLowerCase();
+    const password = authPassword.value;
+
+    if (!nome || !cpf || !email || !password) {
+      setStatus(authMessage, 'Informe nome, CPF, e-mail e senha para cadastrar.', 'error');
+      return;
+    }
+
+    const data = await requestJson(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, cpf, email, password, role: 'cidadao' })
+    });
+
+    const tokenMessage = data.verificationToken
+      ? ` Token local: ${data.verificationToken}`
+      : '';
+    setAuthMode(AUTH_MODE.login);
+    setStatus(authMessage, `${data.message || 'Cadastro realizado.'}${tokenMessage}`, 'success');
+  } catch (error) {
+    setStatus(authMessage, error.message || 'Não foi possível cadastrar.', 'error');
+  }
 }
 
 async function loadOccurrences() {
@@ -440,6 +484,9 @@ async function onSubmitOccurrence(event) {
 loadGeoBtn.addEventListener('click', loadGeoData);
 occurrenceForm.addEventListener('submit', onSubmitOccurrence);
 loginBtn.addEventListener('click', onLogin);
+signupBtn.addEventListener('click', onSignup);
+authLoginModeBtn.addEventListener('click', () => setAuthMode(AUTH_MODE.login));
+authSignupModeBtn.addEventListener('click', () => setAuthMode(AUTH_MODE.signup));
 quickAdminBtn.addEventListener('click', onQuickAdminLogin);
 logoutBtn.addEventListener('click', onLogout);
 loadOccurrencesBtn.addEventListener('click', loadOccurrences);
@@ -452,6 +499,7 @@ occurrenceTableBody.addEventListener('click', (event) => {
 });
 
 updateAuthUI();
+updateAuthModeUI();
 updateRequirementFormState();
 initMap();
 loadBairros();

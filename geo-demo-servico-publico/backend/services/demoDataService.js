@@ -5,8 +5,38 @@ import { calculateSlaDeadline, classifySlaStatus } from './slaService.js';
 
 const DEMO_CLEANUP_NOTIFY_TO = 'ariroberto@gmail.com';
 
-const BAIRROS = ['Centro', 'Cidade Nova', 'Vila Nova'];
-const CATEGORIAS = ['BURACO_NA_RUA', 'ILUMINACAO_PUBLICA', 'LIMPEZA_URBANA', 'AGUA_ESGOTO'];
+const BAIRROS = [
+  'Centro',
+  'Cidade Nova',
+  'Vila Nova',
+  'Campo',
+  'Cava',
+  'Cohab',
+  'Cruzeiro',
+  'Estação',
+  'Marista',
+  'Morro',
+  'Padre Francisco',
+  'Parque Res. São Sebastião I',
+  'Tijuco',
+  'Triângulo',
+  'Vista Alegre'
+];
+const CATEGORIAS = [
+  'BURACO_NA_RUA',
+  'ILUMINACAO_PUBLICA',
+  'LIMPEZA_URBANA',
+  'AGUA_ESGOTO',
+  'COLETA_LIXO',
+  'PODA_ARVORE',
+  'SINALIZACAO_VIARIA',
+  'CALCADA_DANIFICADA',
+  'ANIMAL_SOLTO',
+  'DRENAGEM_PLUVIAL',
+  'PROBLEMA_ESCOLA',
+  'PROBLEMA_POSTO_SAUDE',
+  'PROBLEMA_PRACA'
+];
 const STATUS = ['ABERTA', 'EM_ANALISE', 'EM_ATENDIMENTO', 'ENCAMINHADO_EXECUTIVO', 'CONCLUIDA'];
 const PRIORITIES = ['baixa', 'normal', 'alta'];
 
@@ -151,19 +181,31 @@ export async function clearDemoOccurrences({ requestedBy, requestedByEmail }) {
     `Executado por: ${requestedByEmail || requestedBy || 'não informado'}`
   ].join('\n');
 
-  await sendInstitutionalEmail({
-    to: DEMO_CLEANUP_NOTIFY_TO,
-    subject,
-    text,
-    html: `<pre>${text.replaceAll('\n', '<br/>')}</pre>`
-  });
+  let notified = false;
+  let notificationError = null;
+
+  try {
+    await sendInstitutionalEmail({
+      to: DEMO_CLEANUP_NOTIFY_TO,
+      subject,
+      text,
+      html: `<pre>${text.replaceAll('\n', '<br/>')}</pre>`
+    });
+    notified = true;
+  } catch (error) {
+    notificationError = error?.message || 'Falha ao enviar notificação.';
+    // eslint-disable-next-line no-console
+    console.warn(`[demo-data] limpeza sem notificação por email: ${notificationError}`);
+  }
 
   // eslint-disable-next-line no-console
   console.log(`[demo-data] limpeza executada por ${requestedBy || 'desconhecido'} | removidos=${total}`);
 
   return {
     removed: total,
-    notified: DEMO_CLEANUP_NOTIFY_TO,
+    notified,
+    notificationTo: DEMO_CLEANUP_NOTIFY_TO,
+    notificationError,
     timestamp
   };
 }
