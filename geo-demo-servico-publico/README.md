@@ -16,7 +16,10 @@ Demo full stack de utilidade pública para registro de ocorrências urbanas com 
 - `GET /api/ocorrencias/:id` (protegido)
 - `POST /api/ocorrencias` (protegido)
 - `PATCH /api/ocorrencias/:id/status` (admin/ouvidoria)
+- `POST /api/auth/register`
 - `POST /api/auth/login`
+- `GET /api/auth/confirm`
+- `POST /api/auth/confirm`
 - `POST /api/auth/refresh`
 - `POST /api/auth/logout`
 - `GET /api/admin/audit` (admin)
@@ -48,6 +51,12 @@ npm install
 npm run dev
 ```
 Abra: `http://localhost:3340`
+
+### Acesso às páginas frontend
+- App cidadão: `http://localhost:3340/index.html`
+- Painel administrativo: `http://localhost:3340/admin.html`
+- Confirmação de e-mail: `http://localhost:3340/confirm.html?token=<TOKEN>`
+- Site da vereadora: `http://localhost:3340/vereadora.html`
 
 ### Docker
 ```bash
@@ -86,6 +95,7 @@ curl http://localhost:3340/api/geo/sao-vicente-de-minas
 
 ## Fase 2 executada (Autenticação + Auditoria)
 - JWT com `accessToken` e `refreshToken`
+- Registro de usuário com CPF e confirmação de e-mail
 - Roles: `cidadao`, `admin`, `ouvidoria`
 - Middleware `authorize(...roles)` aplicado nas rotas protegidas
 - Trilha de auditoria para alteração de status

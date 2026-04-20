@@ -22,18 +22,21 @@ const pool = new Pool({
 
 async function seedDefaultUsers() {
   const users = [
-    { nome: 'Admin Demo', email: 'admin@demo.local', role: 'admin', password: 'Admin@123' },
-    { nome: 'Ouvidoria Demo', email: 'ouvidoria@demo.local', role: 'ouvidoria', password: 'Ouvidoria@123' },
-    { nome: 'Cidadao Demo', email: 'cidadao@demo.local', role: 'cidadao', password: 'Cidadao@123' }
+    { nome: 'Admin Demo', email: 'admin@demo.local', role: 'admin', password: 'Admin@123', cpf: '00000000191', emailVerified: true },
+    { nome: 'Ouvidoria Demo', email: 'ouvidoria@demo.local', role: 'ouvidoria', password: 'Ouvidoria@123', cpf: '00000000272', emailVerified: true },
+    { nome: 'Cidadao Demo', email: 'cidadao@demo.local', role: 'cidadao', password: 'Cidadao@123', cpf: '00000000353', emailVerified: true }
   ];
 
   for (const user of users) {
     const passwordHash = await bcrypt.hash(user.password, 10);
     await pool.query(
-      `INSERT INTO users (id, nome, email, role, password_hash)
-       VALUES ($1, $2, $3, $4, $5)
-       ON CONFLICT (email) DO NOTHING`,
-      [randomUUID(), user.nome, user.email, user.role, passwordHash]
+      `INSERT INTO users (id, nome, email, cpf, role, password_hash, email_verified, email_confirmed_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+       ON CONFLICT (email) DO UPDATE
+         SET cpf = COALESCE(users.cpf, EXCLUDED.cpf),
+             email_verified = COALESCE(users.email_verified, EXCLUDED.email_verified),
+             email_confirmed_at = COALESCE(users.email_confirmed_at, NOW())`,
+      [randomUUID(), user.nome, user.email, user.cpf, user.role, passwordHash, user.emailVerified]
     );
   }
 }

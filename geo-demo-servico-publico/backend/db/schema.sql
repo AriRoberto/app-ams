@@ -4,8 +4,13 @@ CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY,
   nome TEXT NOT NULL,
   email TEXT UNIQUE NOT NULL,
+  cpf TEXT UNIQUE,
   role TEXT NOT NULL CHECK (role IN ('cidadao', 'admin', 'ouvidoria')),
   password_hash TEXT NOT NULL,
+  email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+  email_confirmed_at TIMESTAMPTZ,
+  email_verification_token TEXT,
+  email_verification_sent_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -98,8 +103,14 @@ ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS email_sent_at TIMESTAMPTZ;
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS sla_deadline TIMESTAMPTZ;
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS resolved_at TIMESTAMPTZ;
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS cpf TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_confirmed_at TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_token TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verification_sent_at TIMESTAMPTZ;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS role TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_cpf ON users (cpf);
 
 CREATE INDEX IF NOT EXISTS idx_occurrences_location ON occurrences USING GIST (location);
 CREATE INDEX IF NOT EXISTS idx_occurrences_created_at ON occurrences (created_at DESC);
