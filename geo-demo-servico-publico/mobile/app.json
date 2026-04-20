@@ -1,0 +1,15 @@
+{
+  "expo": {
+    "name": "Geo Demo Serviço Público",
+    "slug": "geo-demo-servico-publico",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "br.geo.demo.servicopublico"
+    },
+    "android": {
+      "package": "br.geo.demo.servicopublico"
+    }
+  }
+}
