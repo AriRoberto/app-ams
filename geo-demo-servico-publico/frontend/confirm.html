@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Confirmação de E-mail</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="container">
+      <section class="card auth-card">
+        <h1>Confirmação de e-mail</h1>
+        <p id="confirmMessage">Aguarde enquanto confirmamos seu e-mail...</p>
+        <p>Após a confirmação, retorne à página inicial para fazer login.</p>
+        <a href="./index.html" class="primary-btn">Voltar ao app</a>
+      </section>
+    </main>
+
+    <script>
+      async function confirmEmail() {
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('token');
+        const messageNode = document.getElementById('confirmMessage');
+
+        if (!token) {
+          messageNode.textContent = 'Token de confirmação ausente. Verifique o link no seu e-mail.';
+          return;
+        }
+
+        try {
+          const response = await fetch(`/api/auth/confirm?token=${encodeURIComponent(token)}`);
+          const data = await response.json();
+
+          if (!response.ok) {
+            messageNode.textContent = data.message || 'Falha ao confirmar e-mail.';
+            return;
+          }
+
+          messageNode.textContent = data.message || 'E-mail confirmado com sucesso! Agora faça login.';
+        } catch (error) {
+          messageNode.textContent = error.message || 'Erro de rede na confirmação.';
+        }
+      }
+
+      confirmEmail();
+    </script>
+  </body>
+</html>
