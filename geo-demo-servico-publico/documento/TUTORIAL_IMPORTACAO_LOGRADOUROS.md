@@ -94,6 +94,26 @@ WITH (FORMAT csv, HEADER true, DELIMITER ';', ENCODING 'UTF8');
 
 > Dica: se usar `COPY`, normalize espaços e remova duplicatas antes para evitar conflitos na constraint única `(logradouro, bairro, zona)`.
 
+## Estratégia SQL recomendada para carga definitiva (INSERT via staging)
+Quando as tentativas anteriores falharem por:
+- encoding inconsistente (`UTF-8` vs `Latin1`),
+- cabeçalhos divergentes do esperado,
+- duplicatas por espaços/acentos,
+- linhas vazias no arquivo CSV,
+
+use o script versionado:
+
+```bash
+cd geo-demo-servico-publico/backend
+psql "$DATABASE_URL" -f db/scripts/insert_logradouros_from_csv.sql
+```
+
+O script:
+- cria tabela caso necessário,
+- importa para tabela temporária,
+- normaliza texto/CEP,
+- executa `INSERT ... ON CONFLICT` para ser idempotente.
+
 ## Execução no Docker (recomendado para imagem publicada)
 
 ### 1) Confirmar serviço da API

@@ -9,6 +9,54 @@ export function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').toLowerCase());
 }
 
+export function normalizeCpf(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+export function isValidCpf(value) {
+  const cpf = normalizeCpf(value);
+  if (!/^\d{11}$/.test(cpf)) return false;
+  if (/^(\d)\1{10}$/.test(cpf)) return false;
+
+  const calculateDigit = (base, factor) => {
+    let total = 0;
+    for (let index = 0; index < base.length; index += 1) {
+      total += Number(base[index]) * (factor - index);
+    }
+    const remainder = total % 11;
+    return remainder < 2 ? 0 : 11 - remainder;
+  };
+
+  const digit1 = calculateDigit(cpf.slice(0, 9), 10);
+  const digit2 = calculateDigit(cpf.slice(0, 10), 11);
+  return cpf.endsWith(`${digit1}${digit2}`);
+}
+
+export function validateRegistrationPayload(payload = {}) {
+  const nome = sanitizeText(payload.nome, 120);
+  const email = sanitizeText(payload.email, 180).toLowerCase();
+  const cpf = normalizeCpf(payload.cpf);
+  const password = String(payload.password || '');
+  const role = sanitizeText(payload.role, 20).toLowerCase() || 'cidadao';
+  const errors = [];
+
+  if (nome.length < 3) errors.push('nome deve ter pelo menos 3 caracteres.');
+  if (!isValidEmail(email)) errors.push('email inválido.');
+  if (!isValidCpf(cpf)) errors.push('cpf inválido.');
+  if (password.length < 8) errors.push('password deve ter pelo menos 8 caracteres.');
+  if (!/[A-Z]/.test(password)) errors.push('password deve ter ao menos uma letra maiúscula.');
+  if (!/[a-z]/.test(password)) errors.push('password deve ter ao menos uma letra minúscula.');
+  if (!/\d/.test(password)) errors.push('password deve ter ao menos um número.');
+  if (!/[^\w\s]/.test(password)) errors.push('password deve ter ao menos um caractere especial.');
+  if (!['cidadao', 'admin', 'ouvidoria'].includes(role)) errors.push('role inválida.');
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    data: { nome, email, cpf, password, role }
+  };
+}
+
 export function validateOccurrencePayload(payload) {
   const nomeCidadao = sanitizeText(payload.nomeCidadao, 120);
   const tipoOcorrencia = sanitizeText(payload.tipoOcorrencia, 64);

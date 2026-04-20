@@ -1,9 +1,113 @@
 import bcrypt from 'bcryptjs';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { query } from '../services/db.js';
 import { generateAccessToken, generateRefreshToken, revokeRefreshToken, verifyRefreshToken } from '../services/tokenService.js';
-import { isValidCpf, normalizeCpf } from '../utils/cpf.js';
-import { sendVerificationEmail } from '../services/emailService.js';
+import { sendInstitutionalEmail } from '../services/emailTransport.js';
+import { validateRegistrationPayload } from '../utils/validators.js';
+
+function hashVerificationToken(token) {
+  return createHash('sha256').update(token).digest('hex');
+}
+
+function verificationExpiry(hours = 24) {
+  return new Date(Date.now() + hours * 3600000);
+}
+
+async function sendVerificationEmail({ email, nome, token }) {
+  const appUrl = process.env.APP_PUBLIC_URL || 'http://localhost:3340';
+  const verifyUrl = `${appUrl}/api/auth/verify-email?token=${token}`;
+
+  await sendInstitutionalEmail({
+    to: email,
+    subject: 'Confirmação de cadastro - Serviços Urbanos',
+    text: `Olá ${nome}, confirme seu e-mail acessando: ${verifyUrl}`,
+    html: `<p>Olá <strong>${nome}</strong>,</p><p>Confirme seu e-mail clicando no link abaixo:</p><p><a href="${verifyUrl}">${verifyUrl}</a></p><p>Se você não solicitou cadastro, ignore esta mensagem.</p>`
+  });
+}
+
+export async function registerController(req, res, next) {
+  try {
+    const validation = validateRegistrationPayload(req.body || {});
+    if (!validation.isValid) return res.status(400).json({ message: 'Dados inválidos.', errors: validation.errors });
+
+    const { nome, email, cpf, password, role } = validation.data;
+    const alreadyExists = await query(
+      `SELECT id FROM users
+       WHERE email = $1 OR cpf = $2
+       LIMIT 1`,
+      [email, cpf]
+    );
+
+    if (alreadyExists.rowCount) {
+      return res.status(409).json({ message: 'Já existe usuário com este email ou CPF.' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const verificationToken = randomBytes(32).toString('hex');
+
+    const created = await query(
+      `INSERT INTO users (
+        id, nome, email, cpf, role, password_hash, email_verification_token_hash, email_verification_expires_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, nome, email, cpf, role, email_verified_at`,
+      [
+        randomUUID(),
+        nome,
+        email,
+        cpf,
+        role,
+        passwordHash,
+        hashVerificationToken(verificationToken),
+        verificationExpiry(24)
+      ]
+    );
+
+    try {
+      await sendVerificationEmail({ email, nome, token: verificationToken });
+    } catch (mailError) {
+      // fallback amigável para ambiente local sem SMTP configurado
+      return res.status(201).json({
+        message: 'Cadastro realizado, porém o envio de e-mail falhou neste ambiente.',
+        user: created.rows[0],
+        verificationToken
+      });
+    }
+
+    return res.status(201).json({
+      message: 'Cadastro realizado. Confirme o e-mail para concluir a ativação.',
+      user: created.rows[0]
+    });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function verifyEmailController(req, res, next) {
+  try {
+    const token = String(req.body?.token || req.query?.token || '').trim();
+    if (!token) return res.status(400).json({ message: 'token é obrigatório.' });
+
+    const result = await query(
+      `UPDATE users
+       SET email_verified_at = NOW(),
+           email_verification_token_hash = NULL,
+           email_verification_expires_at = NULL
+       WHERE email_verification_token_hash = $1
+         AND email_verification_expires_at > NOW()
+         AND email_verified_at IS NULL
+       RETURNING id, nome, email, role, email_verified_at`,
+      [hashVerificationToken(token)]
+    );
+
+    if (!result.rowCount) {
+      return res.status(400).json({ message: 'Token inválido, expirado ou já utilizado.' });
+    }
+
+    return res.json({ success: true, message: 'E-mail confirmado com sucesso.', user: result.rows[0] });
+  } catch (error) {
+    return next(error);
+  }
+}
 
 export async function loginController(req, res, next) {
   try {
@@ -14,9 +118,11 @@ export async function loginController(req, res, next) {
     if (!result.rowCount) return res.status(401).json({ message: 'Credenciais inválidas.' });
 
     const user = result.rows[0];
+    if (!user.email_verified_at) {
+      return res.status(403).json({ message: 'E-mail ainda não confirmado. Verifique sua caixa de entrada.' });
+    }
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) return res.status(401).json({ message: 'Credenciais inválidas.' });
-    if (!user.email_verified) return res.status(403).json({ message: 'E-mail não confirmado. Verifique sua caixa de entrada.' });
 
     const accessToken = generateAccessToken(user);
     const refreshToken = await generateRefreshToken(user);
@@ -26,81 +132,6 @@ export async function loginController(req, res, next) {
       refreshToken,
       user: { id: user.id, nome: user.nome, email: user.email, role: user.role }
     });
-  } catch (error) {
-    return next(error);
-  }
-}
-
-export async function registerController(req, res, next) {
-  try {
-    const nome = String(req.body?.nome || '').trim();
-    const email = String(req.body?.email || '').toLowerCase().trim();
-    const password = String(req.body?.password || '');
-    const cpfRaw = String(req.body?.cpf || '');
-    const cpf = normalizeCpf(cpfRaw);
-
-    if (!nome || !email || !password || !cpf) {
-      return res.status(400).json({ message: 'Nome, e-mail, senha e CPF são obrigatórios.' });
-    }
-
-    if (!isValidCpf(cpf)) {
-      return res.status(400).json({ message: 'CPF inválido.' });
-    }
-
-    const existing = await query('SELECT id FROM users WHERE email = $1 OR cpf = $2', [email, cpf]);
-    if (existing.rowCount) {
-      return res.status(409).json({ message: 'E-mail ou CPF já cadastrado.' });
-    }
-
-    const passwordHash = await bcrypt.hash(password, 10);
-    const verificationToken = randomUUID();
-
-    await query(
-      `INSERT INTO users (
-         id, nome, email, cpf, role, password_hash,
-         email_verified, email_verification_token, email_verification_sent_at
-       ) VALUES ($1, $2, $3, $4, $5, $6, false, $7, NOW())`,
-      [randomUUID(), nome, email, cpf, 'cidadao', passwordHash, verificationToken]
-    );
-
-    try {
-      await sendVerificationEmail({ to: email, name: nome, token: verificationToken });
-    } catch (sendError) {
-      // eslint-disable-next-line no-console
-      console.error('[auth] erro ao enviar e-mail de confirmação', sendError);
-      return res.status(201).json({
-        success: true,
-        message: 'Cadastro realizado. Não foi possível enviar o e-mail de confirmação, tente novamente mais tarde.'
-      });
-    }
-
-    return res.status(201).json({ success: true, message: 'Cadastro realizado. Verifique seu e-mail para confirmar a conta.' });
-  } catch (error) {
-    return next(error);
-  }
-}
-
-export async function confirmEmailController(req, res, next) {
-  try {
-    const token = String(req.query?.token || req.body?.token || '').trim();
-    if (!token) return res.status(400).json({ message: 'Token de confirmação é obrigatório.' });
-
-    const result = await query('SELECT id FROM users WHERE email_verification_token = $1', [token]);
-    if (!result.rowCount) {
-      return res.status(400).json({ message: 'Token de confirmação inválido ou expirado.' });
-    }
-
-    await query(
-      `UPDATE users
-       SET email_verified = TRUE,
-           email_confirmed_at = NOW(),
-           email_verification_token = NULL,
-           email_verification_sent_at = NULL
-       WHERE id = $1`,
-      [result.rows[0].id]
-    );
-
-    return res.json({ success: true, message: 'E-mail confirmado com sucesso. Agora você pode fazer login.' });
   } catch (error) {
     return next(error);
   }

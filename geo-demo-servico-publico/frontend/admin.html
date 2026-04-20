@@ -8,45 +8,46 @@
   </head>
   <body>
     <main class="container">
+      <section class="panel-row">
+        <section class="card panel-card">
+          <h1>Painel Administrativo e SLA</h1>
+          <p>Use credenciais de admin ou ouvidoria para consultar métricas e chamados.</p>
+        </section>
+
+        <section class="card panel-card">
+          <h2>Login</h2>
+          <div class="grid">
+            <input id="email" placeholder="E-mail" value="admin@demo.local" />
+            <input id="password" placeholder="Senha" type="password" value="Admin@123" />
+            <button id="loginBtn" class="primary-btn">Entrar</button>
+          </div>
+        </section>
+
+        <section class="card panel-card">
+          <h2>Filtros</h2>
+          <div class="grid">
+            <input id="bairro" placeholder="Bairro" />
+            <input id="categoria" placeholder="Categoria" />
+            <input id="status" placeholder="Status" />
+            <input id="dataInicio" type="date" />
+            <input id="dataFim" type="date" />
+            <button id="applyBtn" class="primary-btn">Aplicar filtros</button>
+          </div>
+        </section>
+
+        <section class="card panel-card">
+          <h2>Dados de Demonstração</h2>
+          <p>Gere ou limpe dados de teste para evidenciar SLAs <span class="sla-violado">vencidos</span>, <span class="sla-atencao">a vencer</span> e <span class="sla-ok">em dia</span>.</p>
+          <div class="grid">
+            <input id="demoTotal" type="number" min="20" value="24" />
+            <button id="seedDemoBtn" class="primary-btn">Gerar massa demo</button>
+            <button id="clearDemoBtn">Limpar massa demo</button>
+          </div>
+          <p id="demoStatus" class="status"></p>
+        </section>
+      </section>
+
       <section class="card">
-        <h1>Painel Administrativo e SLA</h1>
-        <p>Use credenciais de admin ou ouvidoria para consultar métricas e chamados.</p>
-      </section>
-
-      <section class="card controls">
-        <h2>Login</h2>
-        <div class="grid">
-          <input id="email" placeholder="E-mail" value="admin@demo.local" />
-          <input id="password" placeholder="Senha" type="password" value="Admin@123" />
-          <button id="loginBtn" class="primary-btn">Entrar</button>
-        </div>
-      </section>
-
-      <section class="card controls">
-        <h2>Filtros</h2>
-        <div class="grid">
-          <input id="bairro" placeholder="Bairro" />
-          <input id="categoria" placeholder="Categoria" />
-          <input id="status" placeholder="Status" />
-          <input id="dataInicio" type="date" />
-          <input id="dataFim" type="date" />
-          <button id="applyBtn" class="primary-btn">Aplicar filtros</button>
-        </div>
-      </section>
-
-
-      <section class="card city-card">
-        <h2>Dados de Demonstração</h2>
-        <p>Gere ou limpe dados de teste para evidenciar SLAs <span class="sla-violado">vencidos</span>, <span class="sla-atencao">a vencer</span> e <span class="sla-ok">em dia</span>.</p>
-        <div class="grid">
-          <input id="demoTotal" type="number" min="20" value="24" />
-          <button id="seedDemoBtn" class="primary-btn">Gerar massa demo</button>
-          <button id="clearDemoBtn">Limpar massa demo</button>
-        </div>
-        <p id="demoStatus" class="status"></p>
-      </section>
-
-      <section class="card city-card">
         <h2>Métricas</h2>
         <div id="metrics" class="grid"></div>
       </section>

@@ -20,13 +20,10 @@ const occurrenceTableBody = document.querySelector('#occurrenceTable tbody');
 const bairroSelect = document.getElementById('bairro');
 const filterBairro = document.getElementById('filterBairro');
 
-const authName = document.getElementById('authName');
-const authCpf = document.getElementById('authCpf');
 const authEmail = document.getElementById('authEmail');
 const authPassword = document.getElementById('authPassword');
 const authInfo = document.getElementById('authInfo');
 const authMessage = document.getElementById('authMessage');
-const registerBtn = document.getElementById('registerBtn');
 const loginBtn = document.getElementById('loginBtn');
 const quickAdminBtn = document.getElementById('quickAdminBtn');
 const logoutBtn = document.getElementById('logoutBtn');
@@ -361,30 +358,6 @@ async function onQuickAdminLogin() {
   await onLogin();
 }
 
-async function onRegister() {
-  try {
-    const nome = authName.value.trim();
-    const cpf = authCpf.value.trim();
-    const email = authEmail.value.trim().toLowerCase();
-    const password = authPassword.value;
-
-    if (!nome || !cpf || !email || !password) {
-      setStatus(authMessage, 'Informe nome, CPF, e-mail e senha para cadastrar.', 'error');
-      return;
-    }
-
-    const data = await requestJson(`${API_BASE}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ nome, cpf, email, password })
-    });
-
-    setStatus(authMessage, data.message || 'Cadastro realizado. Verifique seu e-mail.', 'success');
-  } catch (error) {
-    setStatus(authMessage, error.message || 'Falha ao cadastrar usuário.', 'error');
-  }
-}
-
 async function onLogout() {
   const refreshToken = getRefreshToken();
 
@@ -447,7 +420,6 @@ async function onSubmitOccurrence(event) {
 
 loadGeoBtn.addEventListener('click', loadGeoData);
 occurrenceForm.addEventListener('submit', onSubmitOccurrence);
-registerBtn.addEventListener('click', onRegister);
 loginBtn.addEventListener('click', onLogin);
 quickAdminBtn.addEventListener('click', onQuickAdminLogin);
 logoutBtn.addEventListener('click', onLogout);

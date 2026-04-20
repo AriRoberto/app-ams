@@ -38,6 +38,17 @@ body {
   grid-template-columns: repeat(12, 1fr);
 }
 
+.panel-row {
+  grid-column: span 12;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(220px, 1fr));
+}
+
+.panel-card {
+  height: 100%;
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -88,17 +99,6 @@ button:hover { background: #f6f8fc; }
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
-#metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px;
-  align-items: stretch;
-}
-
-#metrics .card {
-  min-width: 180px;
-}
-
 label {
   display: grid;
   gap: 6px;
@@ -140,6 +140,7 @@ pre, .json-view {
 @media (max-width: 800px) {
   .controls, .city-card { grid-column: span 12; }
   .hero h1 { font-size: 1.5rem; }
+  .panel-row { grid-template-columns: 1fr; }
 }
 
 table {
