@@ -302,7 +302,7 @@ export async function listLogradouros({ bairro } = {}) {
   return result.rows;
 }
 
-export async function importLogradourosFromFile({ filePath, dryRun = false }) {
+export async function importLogradourosFromFile({ filePath, dryRun = false, replaceExisting = false } = {}) {
   const absolutePath = resolveFilePath(filePath);
   const { sheetName, rawRows, sourceType, delimiter, encoding } = loadRawRowsFromFile(absolutePath);
 
@@ -345,6 +345,8 @@ export async function importLogradourosFromFile({ filePath, dryRun = false }) {
     inferredMapping,
     totalRows: rows.length,
     imported: 0,
+    updated: 0,
+    replacedRows: 0,
     skippedDuplicates: 0,
     failed: 0,
     failures: []
@@ -355,6 +357,15 @@ export async function importLogradourosFromFile({ filePath, dryRun = false }) {
 
   try {
     await client.query('BEGIN');
+
+    if (replaceExisting) {
+      const existing = await client.query('SELECT COUNT(*)::int AS total FROM logradouros');
+      report.replacedRows = existing.rows[0]?.total || 0;
+
+      if (!dryRun) {
+        await client.query('DELETE FROM logradouros');
+      }
+    }
 
     for (let index = 0; index < rows.length; index += 1) {
       const rowNumber = headerRowIndex >= 0 ? headerRowIndex + index + 2 : index + 2;
@@ -377,7 +388,7 @@ export async function importLogradourosFromFile({ filePath, dryRun = false }) {
         seenInFile.add(key);
 
         const exists = await client.query(
-          `SELECT 1 FROM logradouros
+          `SELECT id FROM logradouros
            WHERE LOWER(logradouro) = LOWER($1)
              AND LOWER(bairro) = LOWER($2)
              AND COALESCE(LOWER(zona), '') = COALESCE(LOWER($3), '')
@@ -386,8 +397,20 @@ export async function importLogradourosFromFile({ filePath, dryRun = false }) {
         );
 
         if (exists.rowCount) {
-          report.skippedDuplicates += 1;
-          await client.query(`ROLLBACK TO SAVEPOINT ${savepoint}`);
+          if (!dryRun) {
+            await client.query(
+              `UPDATE logradouros
+               SET tipo = $1,
+                   cep = $2,
+                   source_file = $3,
+                   updated_at = NOW()
+               WHERE id = $4`,
+              [normalized.tipo, normalized.cep, path.basename(absolutePath), exists.rows[0].id]
+            );
+          }
+
+          report.updated += 1;
+          await client.query(`RELEASE SAVEPOINT ${savepoint}`);
           continue;
         }
 

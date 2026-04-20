@@ -7,6 +7,7 @@ import occurrenceRoutes from './routes/occurrenceRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import { closeDatabase, initDatabase } from './services/db.js';
+import { importLogradourosFromFile } from './services/logradouroImportService.js';
 import { BAIRROS_SAO_VICENTE } from './utils/bairros.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +15,12 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = Number(process.env.PORT || 3340);
+
+function envFlag(name, fallback = false) {
+  const value = process.env[name];
+  if (value === undefined) return fallback;
+  return ['1', 'true', 'yes', 'sim', 'on'].includes(String(value).toLowerCase());
+}
 
 app.use(cors());
 app.use(express.json({ limit: '256kb' }));
@@ -85,6 +92,22 @@ async function bootstrap() {
   await initDatabase();
 
   if (process.env.NODE_ENV !== 'test') {
+    if (envFlag('AUTO_IMPORT_LOGRADOUROS_ON_START')) {
+      const filePath = process.env.LOGRADOUROS_IMPORT_FILE || '/tmp/logradouros.csv';
+      const replaceExisting = envFlag('LOGRADOUROS_IMPORT_REPLACE', true);
+      const report = await importLogradourosFromFile({ filePath, replaceExisting });
+      // eslint-disable-next-line no-console
+      console.log('[logradouros-import]', JSON.stringify({
+        filePath: report.filePath,
+        totalRows: report.totalRows,
+        imported: report.imported,
+        updated: report.updated,
+        replacedRows: report.replacedRows,
+        skippedDuplicates: report.skippedDuplicates,
+        failed: report.failed
+      }));
+    }
+
     server = app.listen(PORT, () => {
       // eslint-disable-next-line no-console
       console.log(`Geo demo running on http://localhost:${PORT}`);

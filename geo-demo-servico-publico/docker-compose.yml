@@ -53,6 +53,11 @@ services:
       SMTP_PASS: change-me
       SMTP_SECURE: "false"
       MAIL_FROM: noreply@geo-demo.local
+      AUTO_IMPORT_LOGRADOUROS_ON_START: "true"
+      LOGRADOUROS_IMPORT_FILE: /tmp/logradouros.csv
+      LOGRADOUROS_IMPORT_REPLACE: "true"
+    volumes:
+      - ./Logradouros_Zonas.csv:/tmp/logradouros.csv:ro
     depends_on:
       db:
         condition: service_healthy

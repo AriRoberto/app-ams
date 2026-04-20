@@ -71,9 +71,14 @@ h2 { margin-top: 0; }
   color: #fff;
   font-weight: 600;
   cursor: pointer;
+  opacity: 1;
 }
 
-.primary-btn:hover { filter: brightness(1.07); }
+.primary-btn:hover:not(:disabled) {
+  background: linear-gradient(120deg, var(--primary-dark), var(--primary));
+  color: #fff;
+  opacity: 1;
+}
 
 button {
   border: 1px solid var(--border);
@@ -82,9 +87,15 @@ button {
   background: #fff;
   color: var(--text);
   cursor: pointer;
+  opacity: 1;
 }
 
-button:hover { background: #f6f8fc; }
+button:hover:not(:disabled) {
+  background: #eef4fb;
+  border-color: #b7c7dc;
+  color: var(--text);
+  opacity: 1;
+}
 
 #map {
   width: 100%;

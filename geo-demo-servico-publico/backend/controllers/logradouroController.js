@@ -4,8 +4,9 @@ export async function importLogradourosController(req, res, next) {
   try {
     const filePath = String(req.body?.filePath || 'Logradouros_Zonas Valendo.xls').trim();
     const dryRun = Boolean(req.body?.dryRun);
+    const replaceExisting = Boolean(req.body?.replaceExisting);
 
-    const report = await importLogradourosFromFile({ filePath, dryRun });
+    const report = await importLogradourosFromFile({ filePath, dryRun, replaceExisting });
 
     return res.status(201).json({
       success: true,
