@@ -36,7 +36,6 @@ geo-demo-servico-publico/
   backend/
   frontend/
   mobile/
-  documento/
   docs/
   Dockerfile
   docker-compose.yml
@@ -111,9 +110,9 @@ curl http://localhost:3340/api/geo/sao-vicente-de-minas
 - SLA e trilha completa de atendimento institucional
 
 ## Onboarding e documentação recomendada
-- Setup local completo: `documento/GUIA_CONFIG_LOCAL_DEMO.md`
-- Dashboard e perfis de acesso: `documento/GUIA_DASHBOARD_E_ACESSOS.md`
-- Auditoria de documentação (2026-04-06): `documento/AUDITORIA_DOCUMENTACAO_2026-04-06.md`
+- Setup local completo: `docs/GUIA_CONFIG_LOCAL_DEMO.md`
+- Dashboard e perfis de acesso: `docs/GUIA_DASHBOARD_E_ACESSOS.md`
+- Auditoria de documentação (2026-04-06): `docs/AUDITORIA_DOCUMENTACAO_2026-04-06.md`
 
 
 ## Bairros iniciais (São Vicente de Minas/MG)
