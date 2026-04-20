@@ -7,23 +7,23 @@ function buildFilters(params = {}) {
 
   if (params.bairro) {
     values.push(params.bairro);
-    where.push(`bairro = $${values.length}`);
+    where.push(`o.bairro = $${values.length}`);
   }
   if (params.categoria) {
     values.push(params.categoria);
-    where.push(`occurrence_type = $${values.length}`);
+    where.push(`o.occurrence_type = $${values.length}`);
   }
   if (params.status) {
     values.push(params.status);
-    where.push(`status = $${values.length}`);
+    where.push(`o.status = $${values.length}`);
   }
   if (params.dataInicio) {
     values.push(params.dataInicio);
-    where.push(`created_at >= $${values.length}`);
+    where.push(`o.created_at >= $${values.length}`);
   }
   if (params.dataFim) {
     values.push(params.dataFim);
-    where.push(`created_at <= $${values.length}`);
+    where.push(`o.created_at <= $${values.length}`);
   }
 
   return {
@@ -38,16 +38,26 @@ export async function getDashboardTickets(params = {}) {
   const offset = (page - 1) * pageSize;
 
   const { values, whereClause } = buildFilters(params);
-  const listSql = `SELECT id, bairro, occurrence_type AS categoria, status,
-                          executive_response_status,
-                          requirement_form_enabled,
-                          created_at, sla_deadline, resolved_at
-                   FROM occurrences
+  const listSql = `SELECT o.id,
+                          o.bairro,
+                          o.occurrence_type AS categoria,
+                          o.status,
+                          o.executive_response_status,
+                          o.requirement_form_enabled,
+                          o.created_at,
+                          o.sla_deadline,
+                          o.resolved_at,
+                          o.citizen_name AS "nomeCidadao",
+                          u.nome AS "usuarioNome",
+                          u.email AS "usuarioEmail",
+                          u.cpf AS "usuarioCpf"
+                   FROM occurrences o
+                   LEFT JOIN users u ON u.id = o.user_id
                    ${whereClause}
-                   ORDER BY created_at DESC
+                   ORDER BY o.created_at DESC
                    LIMIT ${pageSize} OFFSET ${offset}`;
 
-  const totalSql = `SELECT COUNT(*)::int AS total FROM occurrences ${whereClause}`;
+  const totalSql = `SELECT COUNT(*)::int AS total FROM occurrences o ${whereClause}`;
 
   const [list, total] = await Promise.all([
     query(listSql, values),

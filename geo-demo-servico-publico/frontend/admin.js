@@ -64,6 +64,42 @@ function renderOptions(options, selectedValue) {
     .join('');
 }
 
+function escapeHtml(value) {
+  return String(value || '')
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function formatCpf(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (digits.length !== 11) return value || 'CPF não informado';
+  return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+}
+
+function getRequester(ticket) {
+  const name = ticket.usuarioNome || ticket.nomeCidadao || 'Solicitante não informado';
+  const email = ticket.usuarioEmail || '';
+  const cpf = formatCpf(ticket.usuarioCpf);
+
+  return {
+    title: name,
+    detail: email ? `${email} · CPF ${cpf}` : `CPF ${cpf}`
+  };
+}
+
+function renderRequester(ticket) {
+  const requester = getRequester(ticket);
+  return `
+    <div class="requester-cell">
+      <strong>${escapeHtml(requester.title)}</strong>
+      <span>${escapeHtml(requester.detail)}</span>
+    </div>
+  `;
+}
+
 function formatStatus(value) {
   const found = STATUS_OPTIONS.find(([status]) => status === value);
   return found ? found[1] : value;
@@ -83,19 +119,19 @@ function renderExecutiveBoard(tickets = []) {
     <article class="executive-action-card">
       <header class="executive-card-header">
         <div>
-          <span class="ticket-id">${ticket.id.slice(0, 8)}</span>
-          <h3>${ticket.bairro || 'Bairro não informado'}</h3>
-          <p>${ticket.categoria}</p>
+          <h3>${escapeHtml(ticket.bairro || 'Bairro não informado')}</h3>
+          <p>${escapeHtml(ticket.categoria)}</p>
+          ${renderRequester(ticket)}
         </div>
         <span class="sla-badge sla-${ticket.sla_status}">${ticket.sla_status}</span>
       </header>
 
       <div class="status-flow">
-        <span class="${ticket.status === 'ABERTA' ? 'active' : ''}">Aberta</span>
-        <span class="${ticket.status === 'EM_ANALISE' ? 'active' : ''}">Análise</span>
-        <span class="${ticket.status === 'EM_ATENDIMENTO' ? 'active' : ''}">Atendimento</span>
-        <span class="${ticket.status === 'ENCAMINHADO_EXECUTIVO' ? 'active' : ''}">Executivo</span>
-        <span class="${ticket.status === 'CONCLUIDA' ? 'active' : ''}">Concluída</span>
+        <span class="status-step ${ticket.status === 'ABERTA' ? 'active' : ''}">Aberta</span>
+        <span class="status-step ${ticket.status === 'EM_ANALISE' ? 'active' : ''}">Análise</span>
+        <span class="status-step ${ticket.status === 'EM_ATENDIMENTO' ? 'active' : ''}">Atendimento</span>
+        <span class="status-step ${ticket.status === 'ENCAMINHADO_EXECUTIVO' ? 'active' : ''}">Executivo</span>
+        <span class="status-step ${ticket.status === 'CONCLUIDA' ? 'active' : ''}">Concluída</span>
       </div>
 
       <div class="executive-actions">
@@ -150,9 +186,9 @@ async function loadDashboard() {
   const tbody = document.querySelector('#ticketsTable tbody');
   tbody.innerHTML = ticketsPayload.data.map((ticket) => `
     <tr>
-      <td>${ticket.id}</td>
-      <td>${ticket.bairro || '-'}</td>
-      <td>${ticket.categoria}</td>
+      <td>${renderRequester(ticket)}</td>
+      <td>${escapeHtml(ticket.bairro || '-')}</td>
+      <td>${escapeHtml(ticket.categoria)}</td>
       <td>${formatStatus(ticket.status)}</td>
       <td class="sla-${ticket.sla_status}">${ticket.sla_status}</td>
       <td>${ticket.tempo_restante}</td>
