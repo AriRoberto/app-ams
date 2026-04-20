@@ -151,7 +151,7 @@ function renderExecutiveBoard(tickets = []) {
         <span class="requirement-pill ${ticket.requirement_form_enabled ? 'enabled' : ''}">
           ${ticket.requirement_form_enabled ? 'Requerimento habilitado' : 'Sem requerimento'}
         </span>
-        <span>${ticket.tempo_restante}</span>
+        <span class="time-cell">${escapeHtml(ticket.tempo_restante)}</span>
         <button class="primary-btn" onclick="updateStatus('${ticket.id}')">Salvar ação</button>
       </div>
     </article>
@@ -191,7 +191,7 @@ async function loadDashboard() {
       <td>${escapeHtml(ticket.categoria)}</td>
       <td>${formatStatus(ticket.status)}</td>
       <td class="sla-${ticket.sla_status}">${ticket.sla_status}</td>
-      <td>${ticket.tempo_restante}</td>
+      <td class="time-cell">${escapeHtml(ticket.tempo_restante)}</td>
     </tr>
   `).join('');
 
