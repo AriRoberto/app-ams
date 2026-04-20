@@ -318,11 +318,19 @@ th, td {
   min-width: 190px;
 }
 
+.occurrence-cell {
+  display: grid;
+  gap: 3px;
+  min-width: 170px;
+}
+
+.occurrence-cell strong,
 .requester-cell strong {
   color: var(--text);
   font-size: 0.9rem;
 }
 
+.occurrence-cell span,
 .requester-cell span {
   color: var(--muted);
   font-size: 0.78rem;

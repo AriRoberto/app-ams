@@ -186,6 +186,17 @@ function updateRequirementFormState() {
   requirementText.required = enabled;
 }
 
+function getOccurrenceSummary(item) {
+  const requester = item.nomeCidadao || getAuthUser()?.nome || 'Solicitante';
+  const protocol = item.id ? `Protocolo ${item.id.slice(0, 8).toUpperCase()}` : 'Protocolo pendente';
+  return `
+    <div class="occurrence-cell">
+      <strong>${escapeHtml(requester)}</strong>
+      <span>${escapeHtml(protocol)}</span>
+    </div>
+  `;
+}
+
 function renderOccurrenceTable(rows) {
   if (!rows.length) {
     occurrenceTableBody.innerHTML = '<tr><td colspan="6">Nenhuma ocorrência encontrada.</td></tr>';
@@ -194,10 +205,10 @@ function renderOccurrenceTable(rows) {
 
   occurrenceTableBody.innerHTML = rows.map((item) => `
     <tr>
-      <td>${item.id}</td>
-      <td>${item.bairro || 'Não informado'}</td>
-      <td>${item.tipoOcorrencia}</td>
-      <td>${item.status}</td>
+      <td>${getOccurrenceSummary(item)}</td>
+      <td>${escapeHtml(item.bairro || 'Não informado')}</td>
+      <td>${escapeHtml(item.tipoOcorrencia)}</td>
+      <td>${escapeHtml(item.status)}</td>
       <td>${new Date(item.dataHoraRegistro).toLocaleString('pt-BR')}</td>
       <td><button data-id="${item.id}" class="detailBtn" type="button">Ver</button></td>
     </tr>
