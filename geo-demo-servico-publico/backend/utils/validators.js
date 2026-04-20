@@ -1,5 +1,4 @@
 import { DESTINATARIOS, OCCURRENCE_TYPES } from './constants.js';
-import { BAIRROS_SAO_VICENTE, isBairroValido } from './bairros.js';
 
 export function sanitizeText(value, max = 300) {
   return String(value || '').trim().replace(/\s+/g, ' ').slice(0, max);
@@ -80,7 +79,6 @@ export function validateOccurrencePayload(payload) {
   if (pontoReferencia.length < 5) errors.push('pontoReferencia deve ter pelo menos 5 caracteres.');
   if (!DESTINATARIOS.includes(destinatario)) errors.push('destinatario inválido.');
   if (!bairro) errors.push('bairro é obrigatório.');
-  if (bairro && !isBairroValido(bairro)) errors.push(`bairro inválido. Use: ${BAIRROS_SAO_VICENTE.join('|')}.`);
   if (!['baixa', 'normal', 'alta'].includes(priority)) errors.push('priority inválida. Use: baixa|normal|alta.');
   if (!isValidEmail(emailDestino)) errors.push('emailDestino inválido.');
   if (cidade.length < 3) errors.push('cidade inválida.');

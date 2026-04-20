@@ -7,7 +7,7 @@ import occurrenceRoutes from './routes/occurrenceRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import { closeDatabase, initDatabase } from './services/db.js';
-import { importLogradourosFromFile } from './services/logradouroImportService.js';
+import { importLogradourosFromFile, listBairrosFromLogradouros } from './services/logradouroImportService.js';
 import { BAIRROS_SAO_VICENTE } from './utils/bairros.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -36,8 +36,17 @@ app.get('/api/health', async (_req, res) => {
 });
 
 
-app.get('/api/bairros', (_req, res) => {
-  res.json({ success: true, data: BAIRROS_SAO_VICENTE });
+app.get('/api/bairros', async (_req, res, next) => {
+  try {
+    const importedBairros = await listBairrosFromLogradouros();
+    res.json({
+      success: true,
+      source: importedBairros.length ? 'logradouros' : 'fallback',
+      data: importedBairros.length ? importedBairros : BAIRROS_SAO_VICENTE
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.use('/api/auth', authRoutes);

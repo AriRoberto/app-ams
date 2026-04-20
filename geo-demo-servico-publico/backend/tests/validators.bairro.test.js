@@ -25,10 +25,10 @@ test('criação com bairro válido é aceita', () => {
   assert.equal(result.data.bairro, 'Centro');
 });
 
-test('bairro inválido é rejeitado', () => {
-  const result = validateOccurrencePayload({ ...payloadBase(), bairro: 'Bairro Inexistente' });
-  assert.equal(result.isValid, false);
-  assert.ok(result.errors.some((item) => item.includes('bairro inválido')));
+test('bairro importado é aceito pela validação de ocorrência', () => {
+  const result = validateOccurrencePayload({ ...payloadBase(), bairro: 'Campo' });
+  assert.equal(result.isValid, true);
+  assert.equal(result.data.bairro, 'Campo');
 });
 
 test('validação de CPF aceita documento válido', () => {

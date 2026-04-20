@@ -302,6 +302,17 @@ export async function listLogradouros({ bairro } = {}) {
   return result.rows;
 }
 
+export async function listBairrosFromLogradouros() {
+  const result = await query(
+    `SELECT DISTINCT bairro
+     FROM logradouros
+     WHERE bairro IS NOT NULL AND TRIM(bairro) <> ''
+     ORDER BY bairro`
+  );
+
+  return result.rows.map((row) => row.bairro);
+}
+
 export async function importLogradourosFromFile({ filePath, dryRun = false, replaceExisting = false } = {}) {
   const absolutePath = resolveFilePath(filePath);
   const { sheetName, rawRows, sourceType, delimiter, encoding } = loadRawRowsFromFile(absolutePath);
