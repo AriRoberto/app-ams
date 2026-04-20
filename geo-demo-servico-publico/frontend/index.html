@@ -101,6 +101,23 @@
             <textarea id="descricao" rows="4" required></textarea>
           </label>
 
+          <label class="check-row">
+            <input id="enableRequirementForm" type="checkbox" />
+            Habilitar formulário de requerimento à Prefeitura
+          </label>
+
+          <fieldset id="requirementFormSection" class="nested-form" disabled>
+            <legend>Modelo de requerimento</legend>
+            <div class="grid">
+              <label>Assunto do requerimento
+                <input id="requirementSubject" placeholder="Ex.: Solicitação de providência administrativa" />
+              </label>
+            </div>
+            <label>Texto base
+              <textarea id="requirementText" rows="5" placeholder="O modelo oficial será anexado posteriormente. Use este campo para registrar o conteúdo inicial do requerimento."></textarea>
+            </label>
+          </fieldset>
+
           <div class="grid readonly-grid">
             <label>Latitude
               <input id="latitude" readonly />

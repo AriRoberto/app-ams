@@ -70,6 +70,13 @@ export function validateOccurrencePayload(payload) {
   const ibge_id = Number(payload.ibge_id);
   const latitude = Number(payload.latitude);
   const longitude = Number(payload.longitude);
+  const requirementFormEnabled = Boolean(payload.requirementFormEnabled);
+  const requirementFormData = requirementFormEnabled
+    ? {
+        assunto: sanitizeText(payload.requirementFormData?.assunto, 180),
+        texto: sanitizeText(payload.requirementFormData?.texto, 2000)
+      }
+    : null;
 
   const errors = [];
 
@@ -85,6 +92,8 @@ export function validateOccurrencePayload(payload) {
   if (uf.length !== 2) errors.push('uf inválida.');
   if (!Number.isInteger(ibge_id)) errors.push('ibge_id inválido.');
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) errors.push('latitude/longitude inválidas.');
+  if (requirementFormEnabled && requirementFormData.assunto.length < 3) errors.push('assunto do requerimento deve ter pelo menos 3 caracteres.');
+  if (requirementFormEnabled && requirementFormData.texto.length < 10) errors.push('texto do requerimento deve ter pelo menos 10 caracteres.');
 
   return {
     isValid: errors.length === 0,
@@ -102,7 +111,9 @@ export function validateOccurrencePayload(payload) {
       uf,
       ibge_id,
       latitude,
-      longitude
+      longitude,
+      requirementFormEnabled,
+      requirementFormData
     }
   };
 }

@@ -19,6 +19,10 @@ const loadOccurrencesBtn = document.getElementById('loadOccurrencesBtn');
 const occurrenceTableBody = document.querySelector('#occurrenceTable tbody');
 const bairroSelect = document.getElementById('bairro');
 const filterBairro = document.getElementById('filterBairro');
+const enableRequirementForm = document.getElementById('enableRequirementForm');
+const requirementFormSection = document.getElementById('requirementFormSection');
+const requirementSubject = document.getElementById('requirementSubject');
+const requirementText = document.getElementById('requirementText');
 
 const authEmail = document.getElementById('authEmail');
 const authPassword = document.getElementById('authPassword');
@@ -157,6 +161,13 @@ function buildBairroOptions() {
   });
 }
 
+function updateRequirementFormState() {
+  const enabled = enableRequirementForm.checked;
+  requirementFormSection.disabled = !enabled;
+  requirementSubject.required = enabled;
+  requirementText.required = enabled;
+}
+
 function renderOccurrenceTable(rows) {
   if (!rows.length) {
     occurrenceTableBody.innerHTML = '<tr><td colspan="6">Nenhuma ocorrência encontrada.</td></tr>';
@@ -281,6 +292,7 @@ async function loadGeoData() {
 }
 
 function extractFormPayload() {
+  const requirementFormEnabled = enableRequirementForm.checked;
   return {
     nomeCidadao: document.getElementById('nomeCidadao').value.trim(),
     tipoOcorrencia: document.getElementById('tipoOcorrencia').value,
@@ -293,7 +305,14 @@ function extractFormPayload() {
     longitude: Number(document.getElementById('longitude').value),
     cidade: document.getElementById('cidade').value.trim(),
     uf: document.getElementById('uf').value.trim(),
-    ibge_id: Number(document.getElementById('ibge_id').value)
+    ibge_id: Number(document.getElementById('ibge_id').value),
+    requirementFormEnabled,
+    requirementFormData: requirementFormEnabled
+      ? {
+          assunto: requirementSubject.value.trim(),
+          texto: requirementText.value.trim()
+        }
+      : null
   };
 }
 
@@ -425,6 +444,7 @@ quickAdminBtn.addEventListener('click', onQuickAdminLogin);
 logoutBtn.addEventListener('click', onLogout);
 loadOccurrencesBtn.addEventListener('click', loadOccurrences);
 filterBairro.addEventListener('change', loadOccurrences);
+enableRequirementForm.addEventListener('change', updateRequirementFormState);
 occurrenceTableBody.addEventListener('click', (event) => {
   const button = event.target.closest('.detailBtn');
   if (!button) return;
@@ -432,5 +452,6 @@ occurrenceTableBody.addEventListener('click', (event) => {
 });
 
 updateAuthUI();
+updateRequirementFormState();
 initMap();
 loadBairros();

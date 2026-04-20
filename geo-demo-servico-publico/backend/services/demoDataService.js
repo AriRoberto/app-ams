@@ -7,7 +7,7 @@ const DEMO_CLEANUP_NOTIFY_TO = 'ariroberto@gmail.com';
 
 const BAIRROS = ['Centro', 'Cidade Nova', 'Vila Nova'];
 const CATEGORIAS = ['BURACO_NA_RUA', 'ILUMINACAO_PUBLICA', 'LIMPEZA_URBANA', 'AGUA_ESGOTO'];
-const STATUS = ['ABERTA', 'EM_ANALISE', 'EM_ATENDIMENTO', 'CONCLUIDA'];
+const STATUS = ['ABERTA', 'EM_ANALISE', 'EM_ATENDIMENTO', 'ENCAMINHADO_EXECUTIVO', 'CONCLUIDA'];
 const PRIORITIES = ['baixa', 'normal', 'alta'];
 
 function formatTs(d) {
@@ -90,13 +90,16 @@ export async function seedDemoOccurrences({ total = 24, requestedBy }) {
       `INSERT INTO occurrences (
         id, citizen_name, user_id, occurrence_type, description, reference_point,
         bairro, priority, destination_role, destination_email,
-        city, uf, ibge_id, status, sla_deadline, resolved_at, is_demo, location, created_at
+        city, uf, ibge_id, status, executive_response_status,
+        requirement_form_enabled, requirement_form_data,
+        sla_deadline, resolved_at, is_demo, location, created_at
       ) VALUES (
         $1, $2, $3, $4, $5,
         $6, $7, $8, $9, $10,
         $11, $12, $13, $14, $15,
         $16, $17,
-        ST_SetSRID(ST_MakePoint($18, $19), 4326)::geography, $20
+        $18, $19, $20,
+        ST_SetSRID(ST_MakePoint($21, $22), 4326)::geography, $23
       )`,
       [
         record.id,
@@ -113,6 +116,9 @@ export async function seedDemoOccurrences({ total = 24, requestedBy }) {
         record.uf,
         record.ibgeId,
         record.status,
+        record.status === 'CONCLUIDA' ? 'DEFERIDO' : null,
+        false,
+        null,
         formatTs(record.slaDeadline),
         record.resolvedAt ? formatTs(record.resolvedAt) : null,
         true,
@@ -161,4 +167,3 @@ export async function clearDemoOccurrences({ requestedBy, requestedByEmail }) {
     timestamp
   };
 }
-

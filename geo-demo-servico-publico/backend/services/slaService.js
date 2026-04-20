@@ -7,7 +7,7 @@ export function calculateSlaDeadline(createdAt) {
 }
 
 export function classifySlaStatus({ status, createdAt, slaDeadline, now = new Date() }) {
-  if (status === 'CONCLUIDA') return 'ok';
+  if (['CONCLUIDA'].includes(status)) return 'ok';
 
   const created = new Date(createdAt);
   const deadline = slaDeadline ? new Date(slaDeadline) : calculateSlaDeadline(created);

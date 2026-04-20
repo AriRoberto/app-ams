@@ -1,8 +1,7 @@
 import { getDashboardMetrics, getDashboardTickets } from '../services/dashboardService.js';
 import { clearDemoOccurrences, seedDemoOccurrences } from '../services/demoDataService.js';
 import { updateOccurrenceStatus } from '../services/occurrenceService.js';
-
-const ALLOWED_STATUS = ['ABERTA', 'EM_ANALISE', 'EM_ATENDIMENTO', 'CONCLUIDA'];
+import { EXECUTIVE_RESPONSE_STATUS, OCCURRENCE_STATUS } from '../utils/constants.js';
 
 export async function dashboardMetricsController(req, res, next) {
   try {
@@ -26,16 +25,23 @@ export async function adminUpdateTicketStatusController(req, res, next) {
   try {
     const id = String(req.params.id || '').trim();
     const statusNovo = String(req.body?.status || '').trim().toUpperCase();
+    const executiveResponseStatus = req.body?.executiveResponseStatus
+      ? String(req.body.executiveResponseStatus).trim().toUpperCase()
+      : null;
 
-    if (!ALLOWED_STATUS.includes(statusNovo)) {
+    if (!OCCURRENCE_STATUS.includes(statusNovo)) {
       return res.status(400).json({ message: 'Status inválido.' });
+    }
+
+    if (executiveResponseStatus && !EXECUTIVE_RESPONSE_STATUS.includes(executiveResponseStatus)) {
+      return res.status(400).json({ message: 'Resposta do Executivo inválida.' });
     }
 
     const updated = await updateOccurrenceStatus(id, statusNovo, {
       userId: req.user.id,
       role: req.user.role,
       ipOrigem: req.ip
-    });
+    }, executiveResponseStatus);
 
     if (!updated) return res.status(404).json({ message: 'Chamado não encontrado.' });
 

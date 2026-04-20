@@ -38,7 +38,10 @@ export async function getDashboardTickets(params = {}) {
   const offset = (page - 1) * pageSize;
 
   const { values, whereClause } = buildFilters(params);
-  const listSql = `SELECT id, bairro, occurrence_type AS categoria, status, created_at, sla_deadline, resolved_at
+  const listSql = `SELECT id, bairro, occurrence_type AS categoria, status,
+                          executive_response_status,
+                          requirement_form_enabled,
+                          created_at, sla_deadline, resolved_at
                    FROM occurrences
                    ${whereClause}
                    ORDER BY created_at DESC

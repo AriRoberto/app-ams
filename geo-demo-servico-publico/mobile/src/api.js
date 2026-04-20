@@ -11,10 +11,25 @@ export function fetchGeoData() {
   return request('/geo/sao-vicente-de-minas');
 }
 
-export function sendOccurrence(payload) {
-  return request('/ocorrencias', {
+export function fetchBairros() {
+  return request('/bairros');
+}
+
+export function login(payload) {
+  return request('/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+}
+
+export function sendOccurrence(payload, accessToken) {
+  return request('/ocorrencias', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${accessToken}`
+    },
     body: JSON.stringify(payload)
   });
 }

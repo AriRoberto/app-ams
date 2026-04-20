@@ -1,6 +1,20 @@
 const API = '/api';
 let accessToken = '';
 
+const STATUS_OPTIONS = [
+  ['ABERTA', 'Aberta'],
+  ['EM_ANALISE', 'Em análise'],
+  ['EM_ATENDIMENTO', 'Em atendimento'],
+  ['ENCAMINHADO_EXECUTIVO', 'Encaminhado ao Executivo'],
+  ['CONCLUIDA', 'Concluída']
+];
+
+const EXECUTIVE_RESPONSE_OPTIONS = [
+  ['', 'Sem indicação'],
+  ['DEFERIDO', 'Deferido'],
+  ['INDEFERIDO', 'Indeferido']
+];
+
 function headers() {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` };
 }
@@ -44,6 +58,12 @@ function metricCard(title, value) {
   return `<div class="card"><strong>${title}</strong><p>${value}</p></div>`;
 }
 
+function renderOptions(options, selectedValue) {
+  return options
+    .map(([value, label]) => `<option value="${value}" ${selectedValue === value ? 'selected' : ''}>${label}</option>`)
+    .join('');
+}
+
 async function loadDashboard() {
   if (!accessToken) return;
   const query = qs();
@@ -80,12 +100,13 @@ async function loadDashboard() {
       <td>${ticket.tempo_restante}</td>
       <td>
         <select data-id="${ticket.id}">
-          <option ${ticket.status === 'ABERTA' ? 'selected' : ''}>ABERTA</option>
-          <option ${ticket.status === 'EM_ANALISE' ? 'selected' : ''}>EM_ANALISE</option>
-          <option ${ticket.status === 'EM_ATENDIMENTO' ? 'selected' : ''}>EM_ATENDIMENTO</option>
-          <option ${ticket.status === 'CONCLUIDA' ? 'selected' : ''}>CONCLUIDA</option>
+          ${renderOptions(STATUS_OPTIONS, ticket.status)}
+        </select>
+        <select data-response-id="${ticket.id}">
+          ${renderOptions(EXECUTIVE_RESPONSE_OPTIONS, ticket.executive_response_status || '')}
         </select>
         <button onclick="updateStatus('${ticket.id}')">Salvar</button>
+        <small>${ticket.requirement_form_enabled ? 'Requerimento habilitado' : 'Sem requerimento'}</small>
       </td>
     </tr>
   `).join('');
@@ -93,11 +114,13 @@ async function loadDashboard() {
 
 async function updateStatus(id) {
   const select = document.querySelector(`select[data-id='${id}']`);
+  const executiveResponseSelect = document.querySelector(`select[data-response-id='${id}']`);
   const status = select.value;
+  const executiveResponseStatus = executiveResponseSelect.value || null;
   const res = await fetch(`${API}/admin/tickets/${id}/status`, {
     method: 'PATCH',
     headers: headers(),
-    body: JSON.stringify({ status })
+    body: JSON.stringify({ status, executiveResponseStatus })
   });
   const payload = await res.json();
   if (!res.ok) return alert(payload.message || 'Falha ao atualizar status');

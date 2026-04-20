@@ -8,6 +8,17 @@ export function humanizeType(type) {
 
 export function buildInstitutionalEmailPreview(occurrence) {
   const assunto = `Nova ocorrência urbana - ${humanizeType(occurrence.tipoOcorrencia)} - ${occurrence.cidade}/${occurrence.uf}`;
+  const requirementLines = occurrence.requirementFormEnabled
+    ? [
+        '',
+        'Requerimento à Prefeitura: habilitado',
+        `Assunto do requerimento: ${occurrence.requirementFormData?.assunto || 'Não informado'}`,
+        `Texto base do requerimento: ${occurrence.requirementFormData?.texto || 'Não informado'}`
+      ]
+    : [
+        '',
+        'Requerimento à Prefeitura: não habilitado'
+      ];
 
   const corpo = [
     'Prezados(as),',
@@ -24,6 +35,7 @@ export function buildInstitutionalEmailPreview(occurrence) {
     `Latitude: ${occurrence.latitude}`,
     `Longitude: ${occurrence.longitude}`,
     `Data/hora do registro: ${occurrence.dataHoraRegistro}`,
+    ...requirementLines,
     '',
     'Solicito o devido encaminhamento institucional e retorno sobre as providências adotadas.',
     '',

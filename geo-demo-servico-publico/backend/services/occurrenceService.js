@@ -21,6 +21,9 @@ const BASE_SELECT = `SELECT
   uf,
   ibge_id,
   status,
+  executive_response_status AS "executiveResponseStatus",
+  requirement_form_enabled AS "requirementFormEnabled",
+  requirement_form_data AS "requirementFormData",
   sla_deadline AS "slaDeadline",
   resolved_at AS "resolvedAt",
   ST_Y(location::geometry) AS latitude,
@@ -45,12 +48,14 @@ export async function createOccurrence(payload, user) {
     `INSERT INTO occurrences (
       id, citizen_name, user_id, occurrence_type, description, reference_point,
       bairro, priority, destination_role, destination_email,
-      city, uf, ibge_id, status, sla_deadline, location, created_at
+      city, uf, ibge_id, status, requirement_form_enabled, requirement_form_data,
+      sla_deadline, location, created_at
     ) VALUES (
       $1, $2, $3, $4, $5,
       $6, $7, $8, $9, $10,
       $11, $12, $13, $14, $15,
-      ST_SetSRID(ST_MakePoint($16, $17), 4326)::geography, $18
+      $16, $17,
+      ST_SetSRID(ST_MakePoint($18, $19), 4326)::geography, $20
     )`,
     [
       occurrence.id,
@@ -67,6 +72,8 @@ export async function createOccurrence(payload, user) {
       occurrence.uf,
       occurrence.ibge_id,
       occurrence.status,
+      occurrence.requirementFormEnabled,
+      occurrence.requirementFormData ? JSON.stringify(occurrence.requirementFormData) : null,
       occurrence.slaDeadline,
       occurrence.longitude,
       occurrence.latitude,
@@ -117,7 +124,7 @@ export async function getOccurrenceById(id, user) {
   return formatOccurrenceRow(result.rows[0]);
 }
 
-export async function updateOccurrenceStatus(id, novoStatus, auditContext) {
+export async function updateOccurrenceStatus(id, novoStatus, auditContext, executiveResponseStatus = null) {
   const oldData = await query('SELECT id, status FROM occurrences WHERE id = $1', [id]);
   if (!oldData.rowCount) return null;
 
@@ -125,16 +132,18 @@ export async function updateOccurrenceStatus(id, novoStatus, auditContext) {
   const updated = await query(
     `UPDATE occurrences
      SET status = $2,
+         executive_response_status = $3,
          resolved_at = CASE WHEN $2 = 'CONCLUIDA' THEN NOW() ELSE resolved_at END
      WHERE id = $1
-     RETURNING id, status AS "statusNovo"`,
-    [id, novoStatus]
+     RETURNING id, status AS "statusNovo", executive_response_status AS "executiveResponseStatus"`,
+    [id, novoStatus, executiveResponseStatus]
   );
 
   const payload = {
     manifestacaoId: id,
     statusAnterior,
-    statusNovo: updated.rows[0].statusNovo
+    statusNovo: updated.rows[0].statusNovo,
+    executiveResponseStatus: updated.rows[0].executiveResponseStatus
   };
 
   if (auditContext) {

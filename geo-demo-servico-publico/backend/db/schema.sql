@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS occurrences (
   uf CHAR(2) NOT NULL,
   ibge_id INTEGER NOT NULL,
   status TEXT NOT NULL DEFAULT 'ABERTA',
+  executive_response_status TEXT CHECK (executive_response_status IN ('DEFERIDO', 'INDEFERIDO')),
+  requirement_form_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+  requirement_form_data JSONB,
   email_status TEXT NOT NULL DEFAULT 'pendente',
   email_last_error TEXT,
   email_sent_at TIMESTAMPTZ,
@@ -94,6 +97,9 @@ CREATE TABLE IF NOT EXISTS attachments (
 
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(id);
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'ABERTA';
+ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS executive_response_status TEXT CHECK (executive_response_status IN ('DEFERIDO', 'INDEFERIDO'));
+ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS requirement_form_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS requirement_form_data JSONB;
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS bairro TEXT DEFAULT 'Não informado';
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS priority TEXT DEFAULT 'normal';
 ALTER TABLE occurrences ADD COLUMN IF NOT EXISTS email_status TEXT NOT NULL DEFAULT 'pendente';
