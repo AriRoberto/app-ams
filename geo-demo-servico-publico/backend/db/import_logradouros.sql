@@ -26,8 +26,8 @@ CREATE TEMP TABLE staging_logradouros (
 );
 
 \copy staging_logradouros (bairro, logradouro, zona, codigo_bairro, codigo_logradouro, area_original)
-FROM '/caminho/para/Logradouros_Zonas.csv'
-WITH CSV HEADER DELIMITER ';' ENCODING 'LATIN1';
+FROM '/tmp/logradouros.csv'
+WITH CSV HEADER DELIMITER ';' ENCODING 'UTF8';
 
 INSERT INTO logradouros (id, logradouro, bairro, zona, tipo, cep, source_file)
 SELECT uuid_generate_v4(),

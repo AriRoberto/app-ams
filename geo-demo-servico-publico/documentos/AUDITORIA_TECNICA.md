@@ -1,13 +1,13 @@
 # Auditoria Técnica — geo-demo-servico-publico
 
 ## Observação inicial
-A pasta `documento/` não existia no projeto. Foi criada para consolidar esta auditoria, conforme solicitação.
+A pasta `documentos/` não existia no projeto. Foi criada para consolidar esta auditoria, conforme solicitação.
 
 ## Problemas encontrados e corrigidos
 
-1. **Ausência de pasta `documento` para análise formal**
+1. **Ausência de pasta `documentos` para análise formal**
    - **Severidade:** Baixa
-   - **Correção:** criação da pasta `documento` e deste relatório.
+   - **Correção:** criação da pasta `documentos` e deste relatório.
 
 2. **Backend sem shutdown gracioso**
    - **Severidade:** Média

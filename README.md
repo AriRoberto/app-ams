@@ -87,7 +87,7 @@ geo-demo-servico-publico/
     src/
     assets/
     README.md
-  docs/
+  documentos/
     ANALISE_PROJETO.md
     RELATORIO_TECNICO.md
     EXECUCAO_NPM.md
@@ -118,7 +118,7 @@ docker compose up --build
 ```
 
 ## Mobile
-Ver instruções em `mobile/README.md` e `docs/EXECUCAO_MOBILE.md`.
+Ver instruções em `mobile/README.md` e `documentos/EXECUCAO_MOBILE.md`.
 
 ## Payload de exemplo
 =======

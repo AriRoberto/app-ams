@@ -1,12 +1,12 @@
 # Auditoria de Documentação — 2026-04-06
 
 ## Escopo analisado
-Pasta atual: `geo-demo-servico-publico/documento/`.
+Pasta atual: `geo-demo-servico-publico/documentos/`.
 
 ## 1) Documentos que precisam de atualização
 
 ### `AUDITORIA_TECNICA.md`
-- **Ponto desatualizado:** afirma que a pasta `documento/` “não existia no projeto”, o que já não representa o estado atual.
+- **Ponto desatualizado:** afirma que a pasta `documentos/` “não existia no projeto”, o que já não representa o estado atual.
 - **Ação recomendada:** manter como histórico ou reescrever com contexto temporal (auditoria inicial).
 
 ### `TUTORIAL_DOCKER.md`
@@ -40,7 +40,7 @@ Pasta atual: `geo-demo-servico-publico/documento/`.
 3. **Guia de navegação por perfil (admin x cidadão)**
    - faltava documentação comparativa de fluxo e permissões por role.
 4. **Convenção de nomenclatura da pasta de documentação**
-   - faltava recomendação técnica para substituir `documento/` por nome mais semântico.
+   - faltava recomendação técnica para substituir `documentos/` por nome mais semântico.
 
 ## 4) Entregáveis criados para fechar lacunas
 
@@ -48,4 +48,3 @@ Pasta atual: `geo-demo-servico-publico/documento/`.
   - setup local completo, token de acesso, endpoints e checklist de validação.
 - `GUIA_DASHBOARD_E_ACESSOS.md`
   - acesso ao dashboard e navegação detalhada para admin e cidadão, com quadro comparativo de capacidades.
-

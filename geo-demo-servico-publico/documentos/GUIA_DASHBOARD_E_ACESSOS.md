@@ -93,7 +93,7 @@ Registrar ocorrências urbanas e acompanhar sua lista de manifestações.
 
 ---
 
-## 6) Nomeação da pasta de documentação (substituir `documento/`)
+## 6) Nomeação da pasta de documentação (substituir `documentos/`)
 
 Sugestões (2-3 opções):
 
@@ -105,4 +105,3 @@ Sugestões (2-3 opções):
    - Simples e direto para onboarding e documentação de uso técnico-funcional.
 
 > Recomendação prática: adotar `docs-operacionais/` para manter legibilidade para times de produto, suporte e engenharia.
-
