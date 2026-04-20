@@ -17,6 +17,10 @@ function buildFilters(params = {}) {
     values.push(params.status);
     where.push(`o.status = $${values.length}`);
   }
+  if (params.priority) {
+    values.push(params.priority);
+    where.push(`o.priority = $${values.length}`);
+  }
   if (params.dataInicio) {
     values.push(params.dataInicio);
     where.push(`o.created_at >= $${values.length}`);
@@ -42,6 +46,7 @@ export async function getDashboardTickets(params = {}) {
                           o.bairro,
                           o.occurrence_type AS categoria,
                           o.status,
+                          o.priority,
                           o.executive_response_status,
                           o.requirement_form_enabled,
                           o.created_at,

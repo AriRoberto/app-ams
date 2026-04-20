@@ -52,6 +52,90 @@
         <div id="metrics" class="grid"></div>
       </section>
 
+      <section class="card analytics-dashboard-card">
+        <div class="section-heading">
+          <div>
+            <h2>Dashboard Analítico de Solicitações Urbanas</h2>
+            <p>Leitura executiva por demanda, bairro e problema para apoiar decisão gerencial.</p>
+          </div>
+          <button id="refreshAnalyticsBtn" class="primary-btn" type="button">Gerar visão estratégica</button>
+        </div>
+
+        <div class="analytics-filters">
+          <label>Período inicial
+            <input id="analyticsDataInicio" type="date" />
+          </label>
+          <label>Período final
+            <input id="analyticsDataFim" type="date" />
+          </label>
+          <label>Bairro
+            <select id="analyticsBairro"><option value="">Todos</option></select>
+          </label>
+          <label>Tipo de demanda
+            <select id="analyticsCategoria"><option value="">Todas</option></select>
+          </label>
+          <label>Problema
+            <select id="analyticsProblem">
+              <option value="">Todos</option>
+              <option value="violado">SLA vencido</option>
+              <option value="atencao">SLA a vencer</option>
+              <option value="ok">SLA em dia</option>
+            </select>
+          </label>
+          <label>Status
+            <select id="analyticsStatus">
+              <option value="">Todos</option>
+              <option value="ABERTA">Aberta</option>
+              <option value="EM_ANALISE">Em análise</option>
+              <option value="EM_ATENDIMENTO">Em atendimento</option>
+              <option value="ENCAMINHADO_EXECUTIVO">Encaminhado ao Executivo</option>
+              <option value="CONCLUIDA">Concluída</option>
+            </select>
+          </label>
+          <label>Prioridade
+            <select id="analyticsPriority">
+              <option value="">Todas</option>
+              <option value="baixa">Baixa</option>
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+            </select>
+          </label>
+          <label>Analisar por
+            <select id="analyticsDimension">
+              <option value="demanda">Demanda</option>
+              <option value="bairro">Bairro</option>
+              <option value="problema">Problema</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="analyticsSummary" class="analytics-summary"></div>
+
+        <div class="chart-type-switch" role="group" aria-label="Tipo de gráfico">
+          <button class="chart-type-btn active" data-chart-type="pie" type="button">Pizza</button>
+          <button class="chart-type-btn" data-chart-type="bar" type="button">Barras</button>
+          <button class="chart-type-btn" data-chart-type="horizontalBar" type="button">Horizontais</button>
+          <button class="chart-type-btn" data-chart-type="line" type="button">Linha</button>
+          <button class="chart-type-btn" data-chart-type="donut" type="button">Donut</button>
+          <button class="chart-type-btn" data-chart-type="area" type="button">Área</button>
+          <button class="chart-type-btn" data-chart-type="radar" type="button">Radar</button>
+        </div>
+
+        <div class="analytics-layout">
+          <div class="chart-panel">
+            <div id="analyticsLoading" class="analytics-loading" hidden>Analisando solicitações...</div>
+            <div id="analyticsChart" class="analytics-chart" aria-live="polite"></div>
+            <div id="analyticsLegend" class="analytics-legend"></div>
+          </div>
+          <aside class="insights-panel">
+            <h3>Insights do período</h3>
+            <div id="analyticsInsights" class="insights-list"></div>
+            <h3>Ranking executivo</h3>
+            <div id="analyticsRanking" class="ranking-list"></div>
+          </aside>
+        </div>
+      </section>
+
       <section class="card">
         <h2>Chamados</h2>
         <div class="table-wrap">
