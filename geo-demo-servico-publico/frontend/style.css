@@ -184,6 +184,11 @@ pre, .json-view {
   .panel-row { grid-template-columns: 1fr; }
 }
 
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -200,6 +205,162 @@ th, td {
 .sla-violado { color: #b3261e; font-weight: 700; }
 
 #demoStatus { margin-top: 10px; }
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.section-heading h2 {
+  margin-bottom: 4px;
+}
+
+.section-heading p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.count-pill,
+.requirement-pill,
+.sla-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.count-pill {
+  background: #eef4fb;
+  color: var(--primary-dark);
+}
+
+.executive-board-card {
+  grid-column: span 12;
+}
+
+.executive-board {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.executive-action-card {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  background: #fbfdff;
+}
+
+.executive-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.executive-card-header h3 {
+  margin: 4px 0;
+  font-size: 1.05rem;
+}
+
+.executive-card-header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.ticket-id {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-flow {
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.status-flow span {
+  min-height: 32px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+  color: var(--muted);
+  background: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.status-flow .active {
+  border-color: var(--primary);
+  background: #e8f2ff;
+  color: var(--primary-dark);
+}
+
+.executive-actions {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.executive-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.requirement-pill {
+  background: #f6f8fc;
+  color: var(--muted);
+}
+
+.requirement-pill.enabled {
+  background: #e8f7ef;
+  color: var(--success);
+}
+
+.sla-badge {
+  background: #f6f8fc;
+}
+
+.empty-state {
+  margin: 0;
+  color: var(--muted);
+}
+
+@media (max-width: 700px) {
+  .section-heading,
+  .executive-card-header {
+    flex-direction: column;
+  }
+
+  .executive-board {
+    grid-template-columns: 1fr;
+  }
+
+  .executive-actions,
+  .status-flow {
+    grid-template-columns: 1fr;
+  }
+}
 
 
 .auth-actions {

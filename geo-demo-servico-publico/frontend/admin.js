@@ -64,6 +64,64 @@ function renderOptions(options, selectedValue) {
     .join('');
 }
 
+function formatStatus(value) {
+  const found = STATUS_OPTIONS.find(([status]) => status === value);
+  return found ? found[1] : value;
+}
+
+function renderExecutiveBoard(tickets = []) {
+  const board = document.getElementById('executiveBoard');
+  const count = document.getElementById('executiveBoardCount');
+  count.textContent = `${tickets.length} chamado${tickets.length === 1 ? '' : 's'}`;
+
+  if (!tickets.length) {
+    board.innerHTML = '<p class="empty-state">Nenhum chamado encontrado para os filtros atuais.</p>';
+    return;
+  }
+
+  board.innerHTML = tickets.map((ticket) => `
+    <article class="executive-action-card">
+      <header class="executive-card-header">
+        <div>
+          <span class="ticket-id">${ticket.id.slice(0, 8)}</span>
+          <h3>${ticket.bairro || 'Bairro não informado'}</h3>
+          <p>${ticket.categoria}</p>
+        </div>
+        <span class="sla-badge sla-${ticket.sla_status}">${ticket.sla_status}</span>
+      </header>
+
+      <div class="status-flow">
+        <span class="${ticket.status === 'ABERTA' ? 'active' : ''}">Aberta</span>
+        <span class="${ticket.status === 'EM_ANALISE' ? 'active' : ''}">Análise</span>
+        <span class="${ticket.status === 'EM_ATENDIMENTO' ? 'active' : ''}">Atendimento</span>
+        <span class="${ticket.status === 'ENCAMINHADO_EXECUTIVO' ? 'active' : ''}">Executivo</span>
+        <span class="${ticket.status === 'CONCLUIDA' ? 'active' : ''}">Concluída</span>
+      </div>
+
+      <div class="executive-actions">
+        <label>Status da solicitação
+          <select data-id="${ticket.id}">
+            ${renderOptions(STATUS_OPTIONS, ticket.status)}
+          </select>
+        </label>
+        <label>Resposta do Executivo
+          <select data-response-id="${ticket.id}">
+            ${renderOptions(EXECUTIVE_RESPONSE_OPTIONS, ticket.executive_response_status || '')}
+          </select>
+        </label>
+      </div>
+
+      <div class="executive-card-footer">
+        <span class="requirement-pill ${ticket.requirement_form_enabled ? 'enabled' : ''}">
+          ${ticket.requirement_form_enabled ? 'Requerimento habilitado' : 'Sem requerimento'}
+        </span>
+        <span>${ticket.tempo_restante}</span>
+        <button class="primary-btn" onclick="updateStatus('${ticket.id}')">Salvar ação</button>
+      </div>
+    </article>
+  `).join('');
+}
+
 async function loadDashboard() {
   if (!accessToken) return;
   const query = qs();
@@ -95,21 +153,13 @@ async function loadDashboard() {
       <td>${ticket.id}</td>
       <td>${ticket.bairro || '-'}</td>
       <td>${ticket.categoria}</td>
-      <td>${ticket.status}</td>
+      <td>${formatStatus(ticket.status)}</td>
       <td class="sla-${ticket.sla_status}">${ticket.sla_status}</td>
       <td>${ticket.tempo_restante}</td>
-      <td>
-        <select data-id="${ticket.id}">
-          ${renderOptions(STATUS_OPTIONS, ticket.status)}
-        </select>
-        <select data-response-id="${ticket.id}">
-          ${renderOptions(EXECUTIVE_RESPONSE_OPTIONS, ticket.executive_response_status || '')}
-        </select>
-        <button onclick="updateStatus('${ticket.id}')">Salvar</button>
-        <small>${ticket.requirement_form_enabled ? 'Requerimento habilitado' : 'Sem requerimento'}</small>
-      </td>
     </tr>
   `).join('');
+
+  renderExecutiveBoard(ticketsPayload.data);
 }
 
 async function updateStatus(id) {
