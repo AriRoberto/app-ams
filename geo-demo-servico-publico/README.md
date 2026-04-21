@@ -62,6 +62,33 @@ curl http://localhost:3340/api/health
 curl http://localhost:3340/api/geo/sao-vicente-de-minas
 ```
 
+## Fluxo recomendado de demonstração
+1. Abrir `http://localhost:3340`.
+2. Entrar com o usuário demo ou cadastrar um cidadão.
+3. Clicar em **Carregar geolocalização oficial**.
+4. Confirmar o mapa com marcador e contexto territorial de São Vicente de Minas/MG.
+5. Preencher o formulário e clicar em **Registrar ocorrência**.
+6. Copiar o protocolo gerado e acompanhar a linha do tempo em **Minhas ocorrências**.
+7. Abrir `http://localhost:3340/admin.html` para visualizar métricas, dashboard analítico, chamados e quadro executivo.
+
+## Payload de exemplo
+```json
+{
+  "nomeCidadao": "Maria Aparecida",
+  "tipoOcorrencia": "BURACO_NA_RUA",
+  "bairro": "Centro",
+  "descricao": "Buraco grande na via principal causando risco de acidente.",
+  "pontoReferencia": "Próximo à Escola Municipal",
+  "destinatario": "PREFEITURA",
+  "emailDestino": "protocolo@prefeitura.mg.gov.br",
+  "latitude": -21.703333,
+  "longitude": -44.443889,
+  "cidade": "São Vicente de Minas",
+  "uf": "MG",
+  "ibge_id": 3165305
+}
+```
+
 
 ## Fase 1 executada (Persistência PostgreSQL + PostGIS)
 - Tabelas criadas: `occurrences`, `users`, `audit_logs`, `attachments`.
