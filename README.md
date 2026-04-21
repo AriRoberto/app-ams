@@ -1,7 +1,6 @@
 # Geo Demo Serviço Público — São Vicente de Minas/MG
 
 ## Visão geral
-<<<<<<< HEAD
 Demo oficial do repositório para registro de ocorrências urbanas georreferenciadas, com backend, frontend web e camada mobile.
 
 ## Objetivo da demo
@@ -13,7 +12,7 @@ A geolocalização é o núcleo operacional da solução: adiciona coordenadas, 
 ## APIs usadas
 - **IBGE**: `https://servicodados.ibge.gov.br/api/v1/localidades/municipios/3165305`
 - **Nominatim**: `https://nominatim.openstreetmap.org/search?q=São%20Vicente%20de%20Minas,%20Minas%20Gerais,%20Brasil&format=jsonv2&limit=1`
-=======
+
 Projeto demo completo para registro de ocorrências urbanas com **geolocalização central** e dados territoriais oficiais para apoiar encaminhamento institucional.
 
 ## Objetivo da demo
@@ -51,7 +50,7 @@ Se a chamada ao Nominatim falhar, o backend usa automaticamente este fallback ha
 ```
 
 No payload de resposta, o campo `source` indica `api` ou `fallback`.
->>>>>>> origin/main
+
 
 ## Endpoints
 - `GET /api/health`
