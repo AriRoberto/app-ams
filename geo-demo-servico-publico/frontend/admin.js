@@ -70,7 +70,12 @@ async function login() {
 }
 
 function metricCard(title, value) {
-  return `<div class="card"><strong>${title}</strong><p>${value}</p></div>`;
+  const tone = title.toLowerCase().includes('violado')
+    ? 'danger'
+    : title.toLowerCase().includes('atenção')
+      ? 'warning'
+      : '';
+  return `<div class="metric-card ${tone}"><strong>${title}</strong><p>${value}</p></div>`;
 }
 
 function renderOptions(options, selectedValue) {
@@ -538,7 +543,7 @@ function renderExecutiveBoard(tickets = []) {
   }
 
   board.innerHTML = tickets.map((ticket) => `
-    <article class="executive-action-card">
+    <article class="executive-action-card ${ticket.sla_status === 'violado' ? 'is-overdue' : ''}">
       <header class="executive-card-header">
         <div>
           <h3>${escapeHtml(ticket.bairro || 'Bairro não informado')}</h3>
@@ -606,7 +611,7 @@ function renderTicketTable(tickets = dashboardTickets) {
   }
 
   tbody.innerHTML = filtered.map((ticket) => `
-    <tr>
+    <tr class="${ticket.sla_status === 'violado' ? 'is-overdue' : ''}">
       <td>${renderRequester(ticket)}</td>
       <td class="neighborhood-cell">${escapeHtml(ticket.bairro || '-')}</td>
       <td>${escapeHtml(formatCategory(ticket.categoria))}</td>
