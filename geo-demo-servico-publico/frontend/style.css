@@ -277,11 +277,25 @@ th, td {
   color: var(--muted);
 }
 
+.heading-actions,
+.executive-counters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.search-field {
+  min-width: min(100%, 320px);
+}
+
 .count-pill,
 .requirement-pill,
-.sla-badge {
+.sla-badge,
+.status-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: 28px;
   border-radius: 999px;
   padding: 5px 10px;
@@ -293,6 +307,42 @@ th, td {
 .count-pill {
   background: #eef4fb;
   color: var(--primary-dark);
+}
+
+.danger-pill {
+  background: #fdecec;
+  color: var(--danger);
+}
+
+.warning-pill {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.status-badge {
+  background: #eef4fb;
+  color: var(--primary-dark);
+}
+
+.status-aberta {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.status-em-analise {
+  background: #fff7ed;
+  color: #b45309;
+}
+
+.status-em-atendimento,
+.status-encaminhado-executivo {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+
+.status-concluida {
+  background: #e8f7ef;
+  color: var(--success);
 }
 
 .tickets-card,
@@ -744,9 +794,101 @@ th, td {
   background: #f6f8fc;
 }
 
+.sla-badge.sla-violado {
+  background: #fdecec;
+}
+
+.sla-badge.sla-atencao {
+  background: #fff7ed;
+}
+
+.sla-badge.sla-ok {
+  background: #e8f7ef;
+}
+
 .empty-state {
   margin: 0;
   color: var(--muted);
+}
+
+.protocol-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #cfe0f3;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.protocol-panel[hidden] {
+  display: none;
+}
+
+.protocol-panel div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.protocol-panel span,
+.protocol-panel small {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.protocol-panel strong {
+  color: var(--primary-dark);
+  font-size: 1.8rem;
+  letter-spacing: 0;
+}
+
+.citizen-timeline {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(82px, 1fr));
+  gap: 6px;
+  overflow-x: auto;
+  padding-top: 4px;
+}
+
+.citizen-step {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.citizen-step::before {
+  content: "";
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.citizen-step.done::before {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.citizen-step.active {
+  color: var(--primary-dark);
+}
+
+.detail-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-panel pre {
+  margin: 0;
 }
 
 @media (max-width: 700px) {
@@ -767,6 +909,15 @@ th, td {
 
   .chart-type-btn {
     flex: 1 1 120px;
+  }
+
+  .heading-actions,
+  .executive-counters {
+    justify-content: flex-start;
+  }
+
+  .protocol-panel {
+    grid-template-columns: 1fr;
   }
 
   .executive-board {

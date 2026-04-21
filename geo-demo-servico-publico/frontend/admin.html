@@ -58,7 +58,10 @@
             <h2>Dashboard Analítico de Solicitações Urbanas</h2>
             <p>Leitura executiva por demanda, bairro e problema para apoiar decisão gerencial.</p>
           </div>
-          <button id="refreshAnalyticsBtn" class="primary-btn" type="button">Gerar visão estratégica</button>
+          <div class="heading-actions">
+            <button id="exportAnalyticsBtn" type="button">Exportar CSV</button>
+            <button id="refreshAnalyticsBtn" class="primary-btn" type="button">Gerar visão estratégica</button>
+          </div>
         </div>
 
         <div class="analytics-filters">
@@ -137,7 +140,15 @@
       </section>
 
       <section class="card tickets-card">
-        <h2>Chamados</h2>
+        <div class="section-heading">
+          <div>
+            <h2>Chamados</h2>
+            <p>Consulta operacional com busca rápida por solicitante, bairro, tipo e status.</p>
+          </div>
+          <label class="search-field">Buscar
+            <input id="ticketSearch" type="search" placeholder="Nome, bairro, tipo ou status" />
+          </label>
+        </div>
         <div class="table-wrap">
           <table id="ticketsTable">
             <thead>
@@ -154,7 +165,11 @@
             <h2>Quadro de Ação do Executivo</h2>
             <p>Atualize o encaminhamento, registre a resposta e acompanhe requerimentos vinculados.</p>
           </div>
-          <span id="executiveBoardCount" class="count-pill">0 chamados</span>
+          <div class="executive-counters">
+            <span id="executiveCriticalCount" class="count-pill danger-pill">0 críticos</span>
+            <span id="executiveAttentionCount" class="count-pill warning-pill">0 a vencer</span>
+            <span id="executiveBoardCount" class="count-pill">0 chamados</span>
+          </div>
         </div>
         <div id="executiveBoard" class="executive-board"></div>
       </section>

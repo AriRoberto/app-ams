@@ -28,6 +28,7 @@ const ANALYTICS_CHARTS = {
 const ANALYTICS_PALETTE = ['#0b5cad', '#177245', '#d97706', '#b3261e', '#6d5dfc', '#0891b2', '#be185d', '#475569'];
 let activeChartType = 'pie';
 let analyticsRows = [];
+let dashboardTickets = [];
 
 function headers() {
   return { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` };
@@ -119,8 +120,21 @@ function formatStatus(value) {
   return found ? found[1] : value;
 }
 
+function normalizeCssToken(value) {
+  return String(value || '').toLowerCase().replaceAll('_', '-');
+}
+
+function renderStatusBadge(status) {
+  return `<span class="status-badge status-${normalizeCssToken(status)}">${escapeHtml(formatStatus(status))}</span>`;
+}
+
+function renderSlaBadge(status) {
+  return `<span class="sla-badge sla-${normalizeCssToken(status)}">${escapeHtml(formatSla(status))}</span>`;
+}
+
 function formatCategory(value) {
   const labels = {
+    LAMPADA_QUEIMADA: 'Lâmpada queimada',
     BURACO_NA_RUA: 'Buracos em vias',
     ILUMINACAO_PUBLICA: 'Iluminação pública',
     LIMPEZA_URBANA: 'Limpeza urbana',
@@ -439,6 +453,41 @@ function renderInsights(rows, groupedItems) {
   `).join('');
 }
 
+function csvEscape(value) {
+  const text = String(value ?? '');
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+function downloadCsv(filename, rows) {
+  const csv = rows.map((row) => row.map(csvEscape).join(';')).join('\n');
+  const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportAnalyticsCsv() {
+  const rows = [
+    ['Bairro', 'Categoria', 'Status', 'Prioridade', 'SLA', 'Solicitante', 'Email', 'CPF', 'Criado em'],
+    ...analyticsRows.map((ticket) => [
+      ticket.bairro || '',
+      formatCategory(ticket.categoria),
+      formatStatus(ticket.status),
+      formatPriority(ticket.priority),
+      formatSla(ticket.sla_status),
+      ticket.usuarioNome || ticket.nomeCidadao || '',
+      ticket.usuarioEmail || '',
+      formatCpf(ticket.usuarioCpf),
+      ticket.created_at ? new Date(ticket.created_at).toLocaleString('pt-BR') : ''
+    ])
+  ];
+
+  downloadCsv('dashboard-solicitacoes-urbanas.csv', rows);
+}
+
 async function loadAnalytics() {
   if (!accessToken) return;
 
@@ -474,7 +523,14 @@ async function loadAnalytics() {
 function renderExecutiveBoard(tickets = []) {
   const board = document.getElementById('executiveBoard');
   const count = document.getElementById('executiveBoardCount');
+  const criticalCount = document.getElementById('executiveCriticalCount');
+  const attentionCount = document.getElementById('executiveAttentionCount');
+  const critical = tickets.filter((ticket) => ticket.sla_status === 'violado').length;
+  const attention = tickets.filter((ticket) => ticket.sla_status === 'atencao').length;
+
   count.textContent = `${tickets.length} chamado${tickets.length === 1 ? '' : 's'}`;
+  criticalCount.textContent = `${critical} crítico${critical === 1 ? '' : 's'}`;
+  attentionCount.textContent = `${attention} a vencer`;
 
   if (!tickets.length) {
     board.innerHTML = '<p class="empty-state">Nenhum chamado encontrado para os filtros atuais.</p>';
@@ -489,7 +545,7 @@ function renderExecutiveBoard(tickets = []) {
           <p>${escapeHtml(ticket.categoria)}</p>
           ${renderRequester(ticket)}
         </div>
-        <span class="sla-badge sla-${ticket.sla_status}">${ticket.sla_status}</span>
+        ${renderSlaBadge(ticket.sla_status)}
       </header>
 
       <div class="status-flow">
@@ -524,6 +580,43 @@ function renderExecutiveBoard(tickets = []) {
   `).join('');
 }
 
+function matchesTicketSearch(ticket, term) {
+  if (!term) return true;
+  const requester = getRequester(ticket);
+  const searchable = [
+    requester.title,
+    requester.detail,
+    ticket.bairro,
+    formatCategory(ticket.categoria),
+    formatStatus(ticket.status),
+    formatSla(ticket.sla_status),
+    formatPriority(ticket.priority)
+  ].join(' ').toLowerCase();
+  return searchable.includes(term);
+}
+
+function renderTicketTable(tickets = dashboardTickets) {
+  const term = (document.getElementById('ticketSearch')?.value || '').trim().toLowerCase();
+  const filtered = tickets.filter((ticket) => matchesTicketSearch(ticket, term));
+  const tbody = document.querySelector('#ticketsTable tbody');
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6">Nenhum chamado encontrado para a busca atual.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((ticket) => `
+    <tr>
+      <td>${renderRequester(ticket)}</td>
+      <td class="neighborhood-cell">${escapeHtml(ticket.bairro || '-')}</td>
+      <td>${escapeHtml(formatCategory(ticket.categoria))}</td>
+      <td>${renderStatusBadge(ticket.status)}</td>
+      <td>${renderSlaBadge(ticket.sla_status)}</td>
+      <td class="time-cell">${escapeHtml(ticket.tempo_restante)}</td>
+    </tr>
+  `).join('');
+}
+
 async function loadDashboard() {
   if (!accessToken) return;
   const query = qs();
@@ -549,19 +642,9 @@ async function loadDashboard() {
     metricCard('Total violado', m.totalViolado)
   ].join('');
 
-  const tbody = document.querySelector('#ticketsTable tbody');
-  tbody.innerHTML = ticketsPayload.data.map((ticket) => `
-    <tr>
-      <td>${renderRequester(ticket)}</td>
-      <td class="neighborhood-cell">${escapeHtml(ticket.bairro || '-')}</td>
-      <td>${escapeHtml(ticket.categoria)}</td>
-      <td>${formatStatus(ticket.status)}</td>
-      <td class="sla-${ticket.sla_status}">${ticket.sla_status}</td>
-      <td class="time-cell">${escapeHtml(ticket.tempo_restante)}</td>
-    </tr>
-  `).join('');
-
-  renderExecutiveBoard(ticketsPayload.data);
+  dashboardTickets = ticketsPayload.data || [];
+  renderTicketTable(dashboardTickets);
+  renderExecutiveBoard(dashboardTickets);
   await loadAnalytics();
 }
 
@@ -627,6 +710,8 @@ document.getElementById('applyBtn').addEventListener('click', loadDashboard);
 document.getElementById('seedDemoBtn').addEventListener('click', seedDemoData);
 document.getElementById('clearDemoBtn').addEventListener('click', clearDemoData);
 document.getElementById('refreshAnalyticsBtn').addEventListener('click', loadAnalytics);
+document.getElementById('exportAnalyticsBtn').addEventListener('click', exportAnalyticsCsv);
+document.getElementById('ticketSearch').addEventListener('input', () => renderTicketTable());
 
 document.querySelectorAll('.chart-type-btn').forEach((button) => {
   button.addEventListener('click', () => {

@@ -20,6 +20,7 @@ const occurrenceForm = document.getElementById('occurrenceForm');
 const submitOccurrenceBtn = document.getElementById('submitOccurrenceBtn');
 const loadOccurrencesBtn = document.getElementById('loadOccurrencesBtn');
 const occurrenceTableBody = document.querySelector('#occurrenceTable tbody');
+const protocolPanel = document.getElementById('protocolPanel');
 const bairroSelect = document.getElementById('bairro');
 const filterBairro = document.getElementById('filterBairro');
 const enableRequirementForm = document.getElementById('enableRequirementForm');
@@ -194,6 +195,52 @@ function getOccurrenceSummary(item) {
       <strong>${escapeHtml(requester)}</strong>
       <span>${escapeHtml(protocol)}</span>
     </div>
+  `;
+}
+
+function formatStatusLabel(value) {
+  const labels = {
+    ABERTA: 'Aberta',
+    EM_ANALISE: 'Em análise',
+    EM_ATENDIMENTO: 'Em atendimento',
+    ENCAMINHADO_EXECUTIVO: 'Executivo',
+    CONCLUIDA: 'Concluída'
+  };
+  return labels[value] || value || 'Pendente';
+}
+
+function renderOccurrenceTimeline(status) {
+  const steps = ['ABERTA', 'EM_ANALISE', 'EM_ATENDIMENTO', 'ENCAMINHADO_EXECUTIVO', 'CONCLUIDA'];
+  const currentIndex = Math.max(0, steps.indexOf(status));
+
+  return `
+    <div class="citizen-timeline" aria-label="Linha do tempo da ocorrência">
+      ${steps.map((step, index) => `
+        <span class="citizen-step ${index <= currentIndex ? 'done' : ''} ${index === currentIndex ? 'active' : ''}">
+          ${escapeHtml(formatStatusLabel(step))}
+        </span>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderProtocolPanel(occurrence) {
+  const protocol = occurrence?.id ? occurrence.id.slice(0, 8).toUpperCase() : '';
+  if (!protocol) {
+    protocolPanel.hidden = true;
+    protocolPanel.innerHTML = '';
+    return;
+  }
+
+  protocolPanel.hidden = false;
+  protocolPanel.innerHTML = `
+    <div>
+      <span>Protocolo da solicitação</span>
+      <strong>${escapeHtml(protocol)}</strong>
+      <small>Acompanhe este código em Minhas ocorrências.</small>
+    </div>
+    <button id="copyProtocolBtn" type="button" data-protocol="${escapeHtml(protocol)}">Copiar protocolo</button>
+    ${renderOccurrenceTimeline(occurrence.status)}
   `;
 }
 
@@ -391,7 +438,11 @@ async function loadOccurrences() {
 async function loadOccurrenceDetail(id) {
   try {
     const response = await authFetch(`${API_BASE}/ocorrencias/${id}`);
-    occurrenceDetailJson.textContent = JSON.stringify(response.data, null, 2);
+    const detail = response.data;
+    occurrenceDetailJson.innerHTML = `
+      ${renderOccurrenceTimeline(detail.status)}
+      <pre>${escapeHtml(JSON.stringify(detail, null, 2))}</pre>
+    `;
   } catch (error) {
     occurrenceDetailJson.textContent = `Erro ao carregar detalhe: ${error.message}`;
   }
@@ -450,6 +501,8 @@ async function onLogout() {
     updateAuthUI();
     occurrenceTableBody.innerHTML = '<tr><td colspan="6">Faça login para visualizar ocorrências.</td></tr>';
     occurrenceDetailJson.textContent = 'Selecione uma ocorrência na tabela para visualizar detalhes.';
+    protocolPanel.hidden = true;
+    protocolPanel.innerHTML = '';
     setStatus(authMessage, 'Logout realizado. Faça login para registrar novas ocorrências.', 'success');
   }
 }
@@ -482,8 +535,12 @@ async function onSubmitOccurrence(event) {
     });
 
     occurrenceJson.textContent = JSON.stringify(result.occurrence, null, 2);
-    occurrenceDetailJson.textContent = JSON.stringify(result.occurrence, null, 2);
+    occurrenceDetailJson.innerHTML = `
+      ${renderOccurrenceTimeline(result.occurrence.status)}
+      <pre>${escapeHtml(JSON.stringify(result.occurrence, null, 2))}</pre>
+    `;
     emailPreview.textContent = `Assunto: ${result.emailPreview.assunto}\nPara: ${result.emailPreview.destinatario}\n\n${result.emailPreview.corpo}`;
+    renderProtocolPanel(result.occurrence);
 
     setStatus(submitMessage, 'Ocorrência registrada com sucesso e pronta para encaminhamento institucional.', 'success');
     await loadOccurrences();
@@ -507,6 +564,17 @@ occurrenceTableBody.addEventListener('click', (event) => {
   const button = event.target.closest('.detailBtn');
   if (!button) return;
   loadOccurrenceDetail(button.dataset.id);
+});
+protocolPanel.addEventListener('click', async (event) => {
+  const button = event.target.closest('#copyProtocolBtn');
+  if (!button) return;
+
+  try {
+    await navigator.clipboard.writeText(button.dataset.protocol);
+    button.textContent = 'Protocolo copiado';
+  } catch {
+    button.textContent = button.dataset.protocol;
+  }
 });
 
 updateAuthUI();
