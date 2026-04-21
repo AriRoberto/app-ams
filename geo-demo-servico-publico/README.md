@@ -97,6 +97,14 @@ curl http://localhost:3340/api/geo/sao-vicente-de-minas
 - `occurrence` com metadados e `dataHoraRegistro`
 - `emailPreview` com `assunto`, `destinatario` e `corpo` formal
 
+## Fase 5 executada (Importação de Logradouros)
+- Tabela `logradouros` para armazenar endereços públicos da prefeitura
+- Script de importação: `npm run import:logradouros -- "../Logradouros_Zonas Valendo.xls"`
+- Endpoint admin para importação: `POST /api/admin/logradouros/import`
+- Endpoint para listagem: `GET /api/admin/logradouros`
+- Suporte a XLS/CSV com mapeamento automático de colunas
+- Deduplicação baseada em logradouro + bairro + zona
+
 ## Cadastro unificado (app + site)
 - Cadastro com `nome`, `email`, `cpf`, `password` e `role`.
 - Confirmação de e-mail obrigatória antes do primeiro login.
