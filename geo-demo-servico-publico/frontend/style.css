@@ -225,6 +225,26 @@ table {
 th, td {
   border: 1px solid var(--border);
   padding: 8px;
+  vertical-align: middle;
+}
+
+.tickets-card {
+  align-self: stretch;
+}
+
+.tickets-card h2 {
+  margin-bottom: 12px;
+}
+
+.tickets-card table {
+  table-layout: auto;
+}
+
+.neighborhood-cell {
+  min-width: 150px;
+  text-align: left;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .time-cell {
@@ -275,6 +295,7 @@ th, td {
   color: var(--primary-dark);
 }
 
+.tickets-card,
 .executive-board-card {
   grid-column: span 12;
 }
@@ -579,7 +600,7 @@ th, td {
 .executive-board {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
 }
 
 .executive-action-card {
@@ -637,10 +658,11 @@ th, td {
 .status-flow {
   display: grid;
   align-items: start;
-  gap: 0;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  grid-template-columns: repeat(5, minmax(86px, 1fr));
+  overflow-x: auto;
   position: relative;
-  padding-top: 2px;
+  padding: 2px 2px 8px;
 }
 
 .status-step {
@@ -649,12 +671,13 @@ th, td {
   justify-items: center;
   gap: 6px;
   position: relative;
-  padding: 0 4px;
+  padding: 0 6px;
   color: var(--muted);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-align: center;
   line-height: 1.2;
+  white-space: nowrap;
 }
 
 .status-step::before {
@@ -755,7 +778,7 @@ th, td {
   }
 
   .status-flow {
-    grid-template-columns: repeat(5, minmax(58px, 1fr));
+    grid-template-columns: repeat(5, minmax(86px, 1fr));
     overflow-x: auto;
     padding: 4px 2px 6px;
   }

@@ -553,7 +553,7 @@ async function loadDashboard() {
   tbody.innerHTML = ticketsPayload.data.map((ticket) => `
     <tr>
       <td>${renderRequester(ticket)}</td>
-      <td>${escapeHtml(ticket.bairro || '-')}</td>
+      <td class="neighborhood-cell">${escapeHtml(ticket.bairro || '-')}</td>
       <td>${escapeHtml(ticket.categoria)}</td>
       <td>${formatStatus(ticket.status)}</td>
       <td class="sla-${ticket.sla_status}">${ticket.sla_status}</td>
